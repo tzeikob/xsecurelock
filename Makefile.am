@@ -159,6 +159,23 @@ auth_x11_SOURCES = \
 auth_x11_CPPFLAGS = $(macros) $(FONTCONFIG_CFLAGS) $(XFT_CFLAGS) $(LIBBSD_CFLAGS)
 auth_x11_LDADD = $(FONTCONFIG_LIBS) $(XFT_LIBS) $(LIBBSD_LIBS)
 
+helpers_PROGRAMS += \
+	auth_me
+auth_me_SOURCES = \
+	env_info.c env_info.h \
+	env_settings.c env_settings.h \
+	helpers/authproto.c helpers/authproto.h \
+	helpers/auth_me.c \
+	helpers/monitors.c helpers/monitors.h \
+	logging.c logging.h \
+	mlock_page.h \
+	util.c util.h \
+	wait_pgrp.c wait_pgrp.h \
+	wm_properties.c wm_properties.h \
+	xscreensaver_api.c xscreensaver_api.h
+auth_me_CPPFLAGS = $(macros) $(FONTCONFIG_CFLAGS) $(XFT_CFLAGS) $(LIBBSD_CFLAGS)
+auth_me_LDADD = $(FONTCONFIG_LIBS) $(XFT_LIBS) $(LIBBSD_LIBS)
+
 if HAVE_PAM
 helpers_PROGRAMS += \
 	authproto_pam
