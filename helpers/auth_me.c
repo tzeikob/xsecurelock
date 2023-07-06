@@ -75,15 +75,6 @@ const char *authproto_executable;
 //! The maximum time to wait at a prompt for user input in seconds.
 int prompt_timeout;
 
-//! Number of dancers in the disco password display
-#define DISCO_PASSWORD_DANCERS 5
-
-//! Length of the "paranoid password display".
-#define PARANOID_PASSWORD_LENGTH (1 << DISCO_PASSWORD_DANCERS)
-
-//! Minimum distance the cursor shall move on keypress.
-#define PARANOID_PASSWORD_MIN_CHANGE 4
-
 //! Border of the window around the text.
 #define WINDOW_BORDER 16
 
@@ -98,97 +89,18 @@ enum PasswordPrompt {
   PASSWORD_PROMPT_CURSOR,
   PASSWORD_PROMPT_ASTERISKS,
   PASSWORD_PROMPT_HIDDEN,
-  PASSWORD_PROMPT_DISCO,
-  PASSWORD_PROMPT_EMOJI,
-  PASSWORD_PROMPT_EMOTICON,
-  PASSWORD_PROMPT_KAOMOJI,
-#if __STDC_VERSION__ >= 199901L
-  PASSWORD_PROMPT_TIME,
-  PASSWORD_PROMPT_TIME_HEX,
-#endif
-
   PASSWORD_PROMPT_COUNT,
 };
 const char *PasswordPromptStrings[] = {
     /* PASSWORD_PROMPT_CURSOR= */ "cursor",
     /* PASSWORD_PROMPT_ASTERISKS= */ "asterisks",
     /* PASSWORD_PROMPT_HIDDEN= */ "hidden",
-    /* PASSWORD_PROMPT_DISCO= */ "disco",
-    /* PASSWORD_PROMPT_EMOJI= */ "emoji",
-    /* PASSWORD_PROMPT_EMOTICON= */ "emoticon",
-    /* PASSWORD_PROMPT_KAOMOJI= */ "kaomoji",
-#if __STDC_VERSION__ >= 199901L
-    /* PASSWORD_PROMPT_TIME= */ "time",
-    /* PASSWORD_PROMPT_TIME_HEX= */ "time_hex",
-#endif
 };
 
 enum PasswordPrompt password_prompt;
 
-// A disco password is composed of multiple disco_dancers (each selected at
-// random from the array), joined by the disco_combiner
-const char *disco_combiner = " ♪ ";
-// Note: the disco_dancers MUST all have the same length
-const char *disco_dancers[] = {
-    "┏(･o･)┛",
-    "┗(･o･)┓",
-};
-
-// Emoji to display in emoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. List taken from the top items in
-// http://emojitracker.com/ The first item is always display in an empty prompt
-// (before typing in the password)
-const char *emoji[] = {
-    "_____", "😂", "❤", "♻", "😍", "♥", "😭", "😊", "😒", "💕", "😘",
-    "😩",     "☺", "👌", "😔", "😁", "😏", "😉", "👍", "⬅", "😅", "🙏",
-    "😌",     "😢", "👀", "💔", "😎", "🎶", "💙", "💜", "🙌", "😳",
-};
-STATIC_ASSERT(sizeof(emoji) / sizeof(*emoji) == PARANOID_PASSWORD_LENGTH,
-              "Emoji array size must be equal to PARANOID_PASSWORD_LENGTH");
-
-// Emoticons to display in emoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. The first item is always display in an empty prompt
-// (before typing in the password)
-const char *emoticons[] = {
-    ":-)",  ":-p", ":-O", ":-\\", "(-:",  "d-:", "O-:", "/-:",
-    "8-)",  "8-p", "8-O", "8-\\", "(-8",  "d-8", "O-8", "/-8",
-    "X-)",  "X-p", "X-O", "X-\\", "(-X",  "d-X", "O-X", "/-X",
-    ":'-)", ":-S", ":-D", ":-#",  "(-':", "S-:", "D-:", "#-:",
-};
-STATIC_ASSERT(sizeof(emoticons) / sizeof(*emoticons) ==
-                  PARANOID_PASSWORD_LENGTH,
-              "Emoticons array size must be equal to PARANOID_PASSWORD_LENGTH");
-
-// Kaomoji to display in kaomoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. The first item is always display in an empty prompt
-// (before typing in the password)
-const char *kaomoji[] = {
-    "(͡°͜ʖ͡°)",     "(>_<)",       "O_ם",      "(^_-)",        "o_0",
-    "o.O",       "0_o",         "O.o",      "(°o°)",        "^m^",
-    "^_^",       "((d[-_-]b))", "┏(･o･)┛",  "┗(･o･)┓",      "（ﾟДﾟ)",
-    "(°◇°)",     "\\o/",        "\\o|",     "|o/",          "|o|",
-    "(●＾o＾●)", "(＾ｖ＾)",    "(＾ｕ＾)", "(＾◇＾)",      "¯\\_(ツ)_/¯",
-    "(^0_0^)",   "(☞ﾟ∀ﾟ)☞",     "(-■_■)",   "(┛ಠ_ಠ)┛彡┻━┻", "┬─┬ノ(º_ºノ)",
-    "(˘³˘)♥",    "❤(◍•ᴗ•◍)",
-};
-STATIC_ASSERT(sizeof(kaomoji) / sizeof(*kaomoji) == PARANOID_PASSWORD_LENGTH,
-              "Kaomoji array size must be equal to PARANOID_PASSWORD_LENGTH");
-
 //! If set, we can start a new login session.
 int have_switch_user_command;
-
-//! If set, the prompt will be fixed by <username>@.
-int show_username;
-
-//! If set, the prompt will be fixed by <hostname>. If >1, the hostname will be
-// shown in full and not cut at the first dot.
-int show_hostname;
-
-//! If set, data and time will be shown.
-int show_datetime;
-
-//! The date format to display.
-const char *datetime_format = "%c";
 
 //! The local hostname.
 char hostname[256];
@@ -225,25 +137,10 @@ XColor xcolor_foreground;
 XColor xcolor_warning;
 
 //! The cursor character displayed at the end of the masked password input.
-static const char cursor[] = "_";
-
-//! The x offset to apply to the entire display (to mitigate burn-in).
-static int x_offset = 0;
-
-//! The y offset to apply to the entire display (to mitigate burn-in).
-static int y_offset = 0;
-
-//! Maximum offset value when dynamic changes are enabled.
-static int burnin_mitigation_max_offset = 0;
-
-//! How much the offsets are allowed to change dynamically, and if so, how high.
-static int burnin_mitigation_max_offset_change = 0;
+static const char cursor[] = "";
 
 //! Whether to play sounds during authentication.
 static int auth_sounds = 0;
-
-//! Whether to blink the cursor in the auth dialog.
-static int auth_cursor_blink = 1;
 
 //! Whether we only want a single auth window.
 static int single_auth_window = 0;
@@ -563,14 +460,12 @@ void DestroyPerMonitorWindows(size_t keep_windows) {
   }
 }
 
-void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor,
-                                    int region_w, int region_h, int x_offset,
-                                    int y_offset) {
+void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region_w, int region_h) {
   // Desired box.
   int w = region_w;
   int h = region_h;
-  int x = monitor->x + (monitor->width - w) / 2 + x_offset;
-  int y = monitor->y + (monitor->height - h) / 2 + y_offset;
+  int x = monitor->x + (monitor->width - w) / 2;
+  int y = monitor->y + (monitor->height - h) / 2;
   // Clip to monitor.
   if (x < 0) {
     w += x;
@@ -653,8 +548,7 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor,
   num_windows = i + 1;
 }
 
-void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
-                             int x_offset, int y_offset) {
+void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h) {
   static size_t num_monitors = 0;
   static Monitor monitors[MAX_WINDOWS];
 
@@ -671,14 +565,12 @@ void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
     for (size_t i = 0; i < num_monitors; ++i) {
       if (x >= monitors[i].x && x < monitors[i].x + monitors[i].width &&
           y >= monitors[i].y && y < monitors[i].y + monitors[i].height) {
-        CreateOrUpdatePerMonitorWindow(0, &monitors[i], region_w, region_h,
-                                       x_offset, y_offset);
+        CreateOrUpdatePerMonitorWindow(0, &monitors[i], region_w, region_h);
         return;
       }
     }
     if (num_monitors > 0) {
-      CreateOrUpdatePerMonitorWindow(0, &monitors[0], region_w, region_h,
-                                     x_offset, y_offset);
+      CreateOrUpdatePerMonitorWindow(0, &monitors[0], region_w, region_h);
       DestroyPerMonitorWindows(1);
     } else {
       DestroyPerMonitorWindows(0);
@@ -691,8 +583,7 @@ void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
 
   // Update or create everything.
   for (size_t i = 0; i < new_num_windows; ++i) {
-    CreateOrUpdatePerMonitorWindow(i, &monitors[i], region_w, region_h,
-                                   x_offset, y_offset);
+    CreateOrUpdatePerMonitorWindow(i, &monitors[i], region_w, region_h);
   }
 
   // Kill all the old stuff.
@@ -790,29 +681,14 @@ void StrAppend(char **output, size_t *output_size, const char *input,
 }
 
 void BuildTitle(char *output, size_t output_size, const char *input) {
-  if (show_username) {
-    size_t username_len = strlen(username);
-    StrAppend(&output, &output_size, username, username_len);
-  }
-
-  if (show_username && show_hostname) {
-    StrAppend(&output, &output_size, "@", 1);
-  }
-
-  if (show_hostname) {
-    size_t hostname_len =
-        show_hostname > 1 ? strlen(hostname) : strcspn(hostname, ".");
-    StrAppend(&output, &output_size, hostname, hostname_len);
-  }
+  size_t username_len = strlen("USERNAME");
+  StrAppend(&output, &output_size, username, username_len);
 
   if (*input == 0) {
     *output = 0;
     return;
   }
 
-  if (show_username || show_hostname) {
-    StrAppend(&output, &output_size, " - ", 3);
-  }
   strncpy(output, input, output_size - 1);
   output[output_size - 1] = 0;
 }
@@ -857,31 +733,9 @@ void DisplayMessage(const char *title, const char *str, int is_warning) {
   int len_switch_user = strlen(switch_user);
   int tw_switch_user = TextWidth(switch_user, len_switch_user);
 
-  char datetime[80] = "";
-  if (show_datetime) {
-    time_t rawtime;
-    struct tm timeinfo_buf;
-    struct tm *timeinfo;
-
-    time(&rawtime);
-    timeinfo = localtime_r(&rawtime, &timeinfo_buf);
-    if (timeinfo == NULL ||
-        strftime(datetime, sizeof(datetime), datetime_format, timeinfo) == 0) {
-      // The datetime buffer was too small to fit the time format, and in this
-      // case the buffer contents are undefined. Let's just make it a valid
-      // empty string then so all else will go well.
-      datetime[0] = 0;
-    }
-  }
-
-  int len_datetime = strlen(datetime);
-  int tw_datetime = TextWidth(datetime, len_datetime);
-
   // Compute the region we will be using, relative to cx and cy.
   int box_w = tw_full_title;
-  if (box_w < tw_datetime) {
-    box_w = tw_datetime;
-  }
+
   if (box_w < tw_str) {
     box_w = tw_str;
   }
@@ -894,33 +748,11 @@ void DisplayMessage(const char *title, const char *str, int is_warning) {
   if (box_w < tw_switch_user) {
     box_w = tw_switch_user;
   }
-  int box_h = (4 + have_multiple_layouts + have_switch_user_command +
-               show_datetime * 2) *
-              th;
+  int box_h = (4 + have_multiple_layouts + have_switch_user_command) * th;
   int region_w = box_w + 2 * WINDOW_BORDER;
   int region_h = box_h + 2 * WINDOW_BORDER;
 
-  if (burnin_mitigation_max_offset_change > 0) {
-    x_offset += rand() % (2 * burnin_mitigation_max_offset_change + 1) -
-                burnin_mitigation_max_offset_change;
-    if (x_offset < -burnin_mitigation_max_offset) {
-      x_offset = -burnin_mitigation_max_offset;
-    }
-    if (x_offset > burnin_mitigation_max_offset) {
-      x_offset = burnin_mitigation_max_offset;
-    }
-    y_offset += rand() % (2 * burnin_mitigation_max_offset_change + 1) -
-                burnin_mitigation_max_offset_change;
-    if (y_offset < -burnin_mitigation_max_offset) {
-      y_offset = -burnin_mitigation_max_offset;
-    }
-    if (y_offset > burnin_mitigation_max_offset) {
-      y_offset = burnin_mitigation_max_offset;
-    }
-  }
-
-  UpdatePerMonitorWindows(per_monitor_windows_dirty, region_w, region_h,
-                          x_offset, y_offset);
+  UpdatePerMonitorWindows(per_monitor_windows_dirty, region_w, region_h);
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
@@ -935,11 +767,6 @@ void DisplayMessage(const char *title, const char *str, int is_warning) {
                    cx - box_w / 2, cy - box_h / 2,  //
                    box_w - 1, box_h - 1);
 #endif
-
-    if (show_datetime) {
-      DrawString(i, cx - tw_datetime / 2, y, 0, datetime, len_datetime);
-      y += th * 2;
-    }
 
     DrawString(i, cx - tw_full_title / 2, y, is_warning, full_title,
                len_full_title);
@@ -995,25 +822,12 @@ void WaitForKeypress(int seconds) {
  * \param pos The initial cursor position; will get updated.
  * \param last_keystroke The time of last keystroke; will get updated.
  */
-void BumpDisplayMarker(size_t pwlen, size_t *pos,
-                       struct timeval *last_keystroke) {
+void BumpDisplayMarker(size_t pwlen, size_t *pos, struct timeval *last_keystroke) {
   gettimeofday(last_keystroke, NULL);
 
-  // Empty password: always put at 0.
-  if (pwlen == 0) {
-    *pos = 0;
-    return;
-  }
-
-  // Otherwise: put in the range and fulfill the constraints.
-  for (;;) {
-    size_t new_pos = 1 + rand() % (PARANOID_PASSWORD_LENGTH - 1);
-    if (labs((ssize_t)new_pos - (ssize_t)*pos) >=
-        PARANOID_PASSWORD_MIN_CHANGE) {
-      *pos = new_pos;
-      break;
-    }
-  }
+  // Always put at 0
+  *pos = 0;
+  return;
 }
 
 //! The size of the buffer to store the password in. Not NUL terminated.
@@ -1072,7 +886,6 @@ int Prompt(const char *msg, char **response, int echo) {
     size_t pos;
     int len;
   } priv;
-  int blink_state = 0;
 
   if (!echo && MLOCK_PAGE(&priv, sizeof(priv)) < 0) {
     LogErrno("mlock");
@@ -1102,7 +915,7 @@ int Prompt(const char *msg, char **response, int echo) {
       priv.displaylen = priv.pwlen;
       // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
       // priv.pwlen + 2 <= sizeof(priv.displaybuf).
-      priv.displaybuf[priv.displaylen] = blink_state ? ' ' : *cursor;
+      priv.displaybuf[priv.displaylen] = *cursor;
       priv.displaybuf[priv.displaylen + 1] = '\0';
     } else {
       switch (password_prompt) {
@@ -1123,7 +936,7 @@ int Prompt(const char *msg, char **response, int echo) {
           memset(priv.displaybuf, '*', priv.displaylen);
           // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
           // priv.pwlen + 2 <= sizeof(priv.displaybuf).
-          priv.displaybuf[priv.displaylen] = blink_state ? ' ' : *cursor;
+          priv.displaybuf[priv.displaylen] = *cursor;
           priv.displaybuf[priv.displaylen + 1] = '\0';
           break;
         }
@@ -1134,75 +947,11 @@ int Prompt(const char *msg, char **response, int echo) {
           break;
         }
 
-        case PASSWORD_PROMPT_DISCO: {
-          size_t combiner_length = strlen(disco_combiner);
-          size_t dancer_length = strlen(disco_dancers[0]);
-          size_t stride = combiner_length + dancer_length;
-          priv.displaylen =
-              stride * DISCO_PASSWORD_DANCERS * strlen(disco_dancers[0]) +
-              strlen(disco_combiner);
-
-          for (size_t i = 0, bit = 1; i < DISCO_PASSWORD_DANCERS;
-               ++i, bit <<= 1) {
-            const char *dancer =
-                disco_dancers[(priv.displaymarker & bit) ? 1 : 0];
-            memcpy(priv.displaybuf + i * stride, disco_combiner,
-                   combiner_length);
-            memcpy(priv.displaybuf + i * stride + combiner_length, dancer,
-                   dancer_length);
-          }
-          memcpy(priv.displaybuf + DISCO_PASSWORD_DANCERS * stride,
-                 disco_combiner, combiner_length);
-          priv.displaybuf[priv.displaylen] = '\0';
-          break;
-        }
-
-        case PASSWORD_PROMPT_EMOJI: {
-          ShowFromArray(emoji, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-        case PASSWORD_PROMPT_EMOTICON: {
-          ShowFromArray(emoticons, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-        case PASSWORD_PROMPT_KAOMOJI: {
-          ShowFromArray(kaomoji, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-#if __STDC_VERSION__ >= 199901L
-        case PASSWORD_PROMPT_TIME:
-        case PASSWORD_PROMPT_TIME_HEX: {
-          if (priv.pwlen == 0) {
-            strncpy(priv.displaybuf, "----", DISPLAYBUF_SIZE - 1);
-            priv.displaybuf[DISPLAYBUF_SIZE - 1] = 0;
-          } else {
-            if (password_prompt == PASSWORD_PROMPT_TIME) {
-              snprintf(priv.displaybuf, DISPLAYBUF_SIZE,
-                       "%" PRId64 ".%06" PRId64,
-                       (int64_t)priv.last_keystroke.tv_sec,
-                       (int64_t)priv.last_keystroke.tv_usec);
-            } else {
-              snprintf(priv.displaybuf, DISPLAYBUF_SIZE, "%#" PRIx64,
-                       (int64_t)priv.last_keystroke.tv_sec * 1000000 +
-                           (int64_t)priv.last_keystroke.tv_usec);
-            }
-            priv.displaybuf[DISPLAYBUF_SIZE - 1] = 0;
-          }
-          break;
-        }
-#endif
-
         default:
         case PASSWORD_PROMPT_CURSOR: {
-          priv.displaylen = PARANOID_PASSWORD_LENGTH;
+          priv.displaylen = 5;
           memset(priv.displaybuf, '_', priv.displaylen);
-          priv.displaybuf[priv.displaymarker] = blink_state ? '-' : '|';
+          priv.displaybuf[priv.displaymarker] = '|';
           priv.displaybuf[priv.displaylen] = '\0';
           break;
         }
@@ -1213,11 +962,6 @@ int Prompt(const char *msg, char **response, int echo) {
     if (!played_sound) {
       PlaySound(SOUND_PROMPT);
       played_sound = 1;
-    }
-
-    // Blink the cursor.
-    if (auth_cursor_blink) {
-      blink_state = !blink_state;
     }
 
     struct timeval timeout;
@@ -1252,9 +996,6 @@ int Prompt(const char *msg, char **response, int echo) {
 
       // From now on, only do nonblocking selects so we update the screen ASAP.
       timeout.tv_usec = 0;
-
-      // Force the cursor to be in visible state while typing.
-      blink_state = 0;
 
       // Reset the prompt timeout.
       deadline = now + prompt_timeout;
@@ -1574,21 +1315,7 @@ int main(int argc_local, char **argv_local) {
   gettimeofday(&tv, NULL);
   srand(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO",
-                                                  AUTHPROTO_EXECUTABLE, 0);
-
-  // Unless disabled, we shift the login prompt randomly around by a few
-  // pixels. This should mostly mitigate burn-in effects from the prompt
-  // being displayed all the time, e.g. because the user's mouse is "shivering"
-  // and thus the auth prompt reappears soon after timeout.
-  burnin_mitigation_max_offset =
-      GetIntSetting("XSECURELOCK_BURNIN_MITIGATION", 16);
-  if (burnin_mitigation_max_offset > 0) {
-    x_offset = rand() % (2 * burnin_mitigation_max_offset + 1) -
-               burnin_mitigation_max_offset;
-    y_offset = rand() % (2 * burnin_mitigation_max_offset + 1) -
-               burnin_mitigation_max_offset;
-  }
+  authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
 
   //! Deprecated flag for setting whether password display should hide the
   //! length.
@@ -1596,24 +1323,14 @@ int main(int argc_local, char **argv_local) {
   //! Updated flag for password display choice
   const char *password_prompt_flag;
 
-  // If requested, mitigate burn-in even more by moving the auth prompt while
-  // displayed. I bet many will find this annoying though.
-  burnin_mitigation_max_offset_change =
-      GetIntSetting("XSECURELOCK_BURNIN_MITIGATION_DYNAMIC", 0);
-
   prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
-  show_username = GetIntSetting("XSECURELOCK_SHOW_USERNAME", 1);
-  show_hostname = GetIntSetting("XSECURELOCK_SHOW_HOSTNAME", 1);
   paranoid_password_flag = GetIntSetting(
       "XSECURELOCK_" /* REMOVE IN v2 */ "PARANOID_PASSWORD", 1);
   password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
-  show_datetime = GetIntSetting("XSECURELOCK_SHOW_DATETIME", 0);
-  datetime_format = GetStringSetting("XSECURELOCK_DATETIME_FORMAT", "%c");
   have_switch_user_command =
       !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
   single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
-  auth_cursor_blink = GetIntSetting("XSECURELOCK_AUTH_CURSOR_BLINK", 1);
 #ifdef HAVE_XKB_EXT
   show_keyboard_layout =
       GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
