@@ -264,16 +264,6 @@ Options to XSecureLock can be passed by environment variables:
 *   `XSECURELOCK_BLANK_DPMS_STATE`: specifies which DPMS state to put the screen
     in when blanking (one of standby, suspend, off and on, where "on" means to
     not invoke DPMS at all).
-*   `XSECURELOCK_BURNIN_MITIGATION`: specifies the number of pixels the prompt
-    of `auth_x11` may be moved at startup to mitigate possible burn-in
-    effects due to the auth dialog being displayed all the time (e.g. when
-    spurious mouse events wake up the screen all the time).
-*   `XSECURELOCK_BURNIN_MITIGATION_DYNAMIC`: if set to a non-zero value,
-    `auth_x11` will move the prompt while it is being displayed, but stay
-    within the bounds of `XSECURELOCK_BURNIN_MITIGATION`. The value of this
-    variable is the maximum allowed shift per screen refresh. This mitigates
-    short-term burn-in effects but is probably annoying to most users, and thus
-    disabled by default.
 *   `XSECURELOCK_COMPOSITE_OBSCURER`: create a second full-screen window to
     obscure window content in case a running compositor unmaps its own window.
     Helps with some instances of bad compositor behavior (such as compositor
@@ -361,32 +351,6 @@ Options to XSecureLock can be passed by environment variables:
             ***_
             *******_
 
-    *   `cursor`: shows a cursor that jumps around on each key press. This is
-        the default.
-
-            ________|_______________________
-            ___________________|____________
-
-    *   `disco`: shows dancers, which dance around on each key press. Requires a
-        font that can handle Unicode line drawing characters, and FontConfig.
-
-            ┏(･o･)┛ ♪ ┗(･o･)┓ ♪ ┏(･o･)┛ ♪ ┗(･o･)┓ ♪ ┏(･o･)┛
-            ┗(･o･)┓ ♪ ┏(･o･)┛ ♪ ┏(･o･)┛ ♪ ┏(･o･)┛ ♪ ┏(･o･)┛
-
-    *   `emoji`: shows an emoji, changing which one on each key press. Requires
-        a font that can handle emoji, and FontConfig.
-
-            👍
-            🎶
-            💕
-
-    *   `emoticon`: shows an ascii emoticon, changing which one on each key
-        press.
-
-            :-O
-            d-X
-            X-\
-
     *   `hidden`: completely hides the password, and there's no feedback for
         keypresses. This would almost be most secure - however as it gives no
         feedback to input whatsoever, you may not be able to notice accidentally
@@ -394,25 +358,6 @@ Options to XSecureLock can be passed by environment variables:
 
         ```
         ```
-
-    *   `kaomoji`: shows a kaomoji (Japanese emoticon), changing which one on
-        each key press. Requires a Japanese font, and FontConfig.
-
-            (͡°͜ʖ͡°)
-            (＾ｕ＾)
-            ¯\_(ツ)_/¯
-
-    *   `time`: shows the current time since the epoch on each keystroke. This
-        may be the most secure mode, as it gives feedback to keystroke based
-        exclusively on public information, and does not carry over any state
-        between keystrokes whatsoever - not even some form of randomness.
-
-            1559655410.922329
-
-    *   `time_hex`: same as `time`, but in microseconds and hexadecimal.
-        "Because we can".
-
-            0x58a7f92bd7359
 
 *   `XSECURELOCK_SAVER`: specifies the desired screen saver module.
 *   `XSECURELOCK_SAVER_RESET_ON_AUTH_CLOSE`: specifies whether to reset the

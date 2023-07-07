@@ -86,13 +86,11 @@ int prompt_timeout;
 
 //! Actual password prompt selected
 enum PasswordPrompt {
-  PASSWORD_PROMPT_CURSOR,
   PASSWORD_PROMPT_ASTERISKS,
   PASSWORD_PROMPT_HIDDEN,
-  PASSWORD_PROMPT_COUNT,
+  PASSWORD_PROMPT_COUNT
 };
 const char *PasswordPromptStrings[] = {
-    /* PASSWORD_PROMPT_CURSOR= */ "cursor",
     /* PASSWORD_PROMPT_ASTERISKS= */ "asterisks",
     /* PASSWORD_PROMPT_HIDDEN= */ "hidden",
 };
@@ -919,6 +917,13 @@ int Prompt(const char *msg, char **response, int echo) {
       priv.displaybuf[priv.displaylen + 1] = '\0';
     } else {
       switch (password_prompt) {
+        case PASSWORD_PROMPT_HIDDEN: {
+          priv.displaylen = 0;
+          priv.displaybuf[0] = '\0';
+          break;
+        }
+
+        default:
         case PASSWORD_PROMPT_ASTERISKS: {
           mblen(NULL, 0);
           priv.pos = priv.displaylen = 0;
@@ -938,21 +943,6 @@ int Prompt(const char *msg, char **response, int echo) {
           // priv.pwlen + 2 <= sizeof(priv.displaybuf).
           priv.displaybuf[priv.displaylen] = *cursor;
           priv.displaybuf[priv.displaylen + 1] = '\0';
-          break;
-        }
-
-        case PASSWORD_PROMPT_HIDDEN: {
-          priv.displaylen = 0;
-          priv.displaybuf[0] = '\0';
-          break;
-        }
-
-        default:
-        case PASSWORD_PROMPT_CURSOR: {
-          priv.displaylen = 5;
-          memset(priv.displaybuf, '_', priv.displaylen);
-          priv.displaybuf[priv.displaymarker] = '|';
-          priv.displaybuf[priv.displaylen] = '\0';
           break;
         }
       }
@@ -1251,22 +1241,19 @@ done:
   return status != 0;
 }
 
-enum PasswordPrompt GetPasswordPromptFromFlags(
-    int paranoid_password_flag, const char *password_prompt_flag) {
+enum PasswordPrompt GetPasswordPromptFromFlags(const char *password_prompt_flag) {
   if (!*password_prompt_flag) {
-    return paranoid_password_flag ? PASSWORD_PROMPT_CURSOR
-                                  : PASSWORD_PROMPT_ASTERISKS;
+    return PASSWORD_PROMPT_ASTERISKS;
   }
 
-  for (enum PasswordPrompt prompt = 0; prompt < PASSWORD_PROMPT_COUNT;
-       ++prompt) {
+  for (enum PasswordPrompt prompt = 0; prompt < PASSWORD_PROMPT_COUNT; ++prompt) {
     if (strcmp(password_prompt_flag, PasswordPromptStrings[prompt]) == 0) {
       return prompt;
     }
   }
 
-  Log("Invalid XSECURELOCK_PASSWORD_PROMPT value; defaulting to cursor");
-  return PASSWORD_PROMPT_CURSOR;
+  Log("Invalid XSECURELOCK_PASSWORD_PROMPT value; defaulting to asterisks");
+  return PASSWORD_PROMPT_ASTERISKS;
 }
 
 #ifdef HAVE_XFT_EXT
@@ -1317,15 +1304,10 @@ int main(int argc_local, char **argv_local) {
 
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
 
-  //! Deprecated flag for setting whether password display should hide the
-  //! length.
-  int paranoid_password_flag;
   //! Updated flag for password display choice
   const char *password_prompt_flag;
 
   prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
-  paranoid_password_flag = GetIntSetting(
-      "XSECURELOCK_" /* REMOVE IN v2 */ "PARANOID_PASSWORD", 1);
   password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
   have_switch_user_command =
       !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
@@ -1338,8 +1320,7 @@ int main(int argc_local, char **argv_local) {
       GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
 #endif
 
-  password_prompt =
-      GetPasswordPromptFromFlags(paranoid_password_flag, password_prompt_flag);
+  password_prompt = GetPasswordPromptFromFlags(password_prompt_flag);
 
   if ((display = XOpenDisplay(NULL)) == NULL) {
     Log("Could not connect to $DISPLAY");
