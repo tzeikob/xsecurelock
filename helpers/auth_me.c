@@ -1294,14 +1294,6 @@ int main(int argc_local, char **argv_local) {
   setlocale(LC_CTYPE, "");
   setlocale(LC_TIME, "");
 
-  // This is used by displaymarker only; there is slight security relevance here
-  // as an attacker who has a screenshot and an exact startup time and PID can
-  // guess the password length. Of course, an attacker who records the screen
-  // as a video, or points a camera or a microphone at the keyboard, can too.
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  srand(tv.tv_sec ^ tv.tv_usec ^ getpid());
-
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
 
   prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
