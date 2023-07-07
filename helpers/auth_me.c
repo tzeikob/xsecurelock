@@ -1304,23 +1304,21 @@ int main(int argc_local, char **argv_local) {
 
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
 
+  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
+
   //! Updated flag for password display choice
   const char *password_prompt_flag;
-
-  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
   password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
-  have_switch_user_command =
-      !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
+  password_prompt = GetPasswordPromptFromFlags(password_prompt_flag);
+
+  have_switch_user_command = !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
   single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
-#ifdef HAVE_XKB_EXT
-  show_keyboard_layout =
-      GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
-  show_locks_and_latches =
-      GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
-#endif
 
-  password_prompt = GetPasswordPromptFromFlags(password_prompt_flag);
+#ifdef HAVE_XKB_EXT
+  show_keyboard_layout = GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
+  show_locks_and_latches = GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
+#endif
 
   if ((display = XOpenDisplay(NULL)) == NULL) {
     Log("Could not connect to $DISPLAY");
