@@ -24,6 +24,7 @@ limitations under the License.
 #include <sys/time.h>    // for gettimeofday, timeval
 #include <time.h>        // for time, nanosleep, localtime_r
 #include <unistd.h>      // for close, _exit, dup2, pipe, dup
+#include <regex.h>       // for compile and check regular expressions
 
 #if __STDC_VERSION__ >= 199901L
 #include <inttypes.h>
@@ -678,64 +679,51 @@ void StrAppend(char **output, size_t *output_size, const char *input,
   *output_size -= input_size;
 }
 
-void BuildTitle(char *output, size_t output_size, const char *input) {
-  size_t username_len = strlen("USERNAME");
-  StrAppend(&output, &output_size, username, username_len);
-
-  if (*input == 0) {
-    *output = 0;
-    return;
+/*! \brief Render the conext of the auth module.
+ *
+ * \param prompt A prompt text.
+ * \param message A long message.
+ * \param is_warning Whether to use the warning style.
+ */
+void RenderContext(char *prompt, char *message, int is_warning) {
+  if (strstr(prompt, "Password:") != NULL) {
+    prompt = "Enter your password:";
   }
 
-  strncpy(output, input, output_size - 1);
-  output[output_size - 1] = 0;
-}
-
-/*! \brief Display a string in the window.
- *
- * The given title and message will be displayed on all screens. In case caps
- * lock is enabled, the string's case will be inverted.
- *
- * \param title The title of the message.
- * \param str The message itself.
- * \param is_warning Whether to use the warning style to display the message.
- */
-void DisplayMessage(const char *title, const char *str, int is_warning) {
-  char full_title[256];
-  BuildTitle(full_title, sizeof(full_title), title);
+  if (strstr(message, "The account is locked") != NULL) {
+    message = "Ooops you're locked!";
+  } else if (strstr(message, "to unlock") != NULL) {
+    message = "Please try again later.";
+  }
 
   int th = TextAscent() + TextDescent() + LINE_SPACING;
   int to = TextAscent() + LINE_SPACING / 2;  // Text at to fits into 0 to th.
 
-  int len_full_title = strlen(full_title);
-  int tw_full_title = TextWidth(full_title, len_full_title);
+  int len_prompt = strlen(prompt);
+  int tw_prompt = TextWidth(prompt, len_prompt);
 
-  int len_str = strlen(str);
-  int tw_str = TextWidth(str, len_str);
+  int len_message = strlen(message);
+  int tw_message = TextWidth(message, len_message);
 
   int indicators_warning = 0;
   int have_multiple_layouts = 0;
-  const char *indicators =
-      GetIndicators(&indicators_warning, &have_multiple_layouts);
+  const char *indicators = GetIndicators(&indicators_warning, &have_multiple_layouts);
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(indicators, len_indicators);
 
-  const char *switch_layout =
-      have_multiple_layouts ? "Press Ctrl-Tab to switch keyboard layout" : "";
+  const char *switch_layout = have_multiple_layouts ? "Press Ctrl-Tab to switch keyboard layout" : "";
   int len_switch_layout = strlen(switch_layout);
   int tw_switch_layout = TextWidth(switch_layout, len_switch_layout);
 
-  const char *switch_user = have_switch_user_command
-                                ? "Press Ctrl-Alt-O or Win-O to switch user"
-                                : "";
+  const char *switch_user = have_switch_user_command ? "Press Ctrl-Alt-O or Win-O to switch user" : "";
   int len_switch_user = strlen(switch_user);
   int tw_switch_user = TextWidth(switch_user, len_switch_user);
 
   // Compute the region we will be using, relative to cx and cy.
-  int box_w = tw_full_title;
+  int box_w = tw_prompt;
 
-  if (box_w < tw_str) {
-    box_w = tw_str;
+  if (box_w < tw_message) {
+    box_w = tw_message;
   }
   if (box_w < tw_indicators) {
     box_w = tw_indicators;
@@ -766,27 +754,23 @@ void DisplayMessage(const char *title, const char *str, int is_warning) {
                    box_w - 1, box_h - 1);
 #endif
 
-    DrawString(i, cx - tw_full_title / 2, y, is_warning, full_title,
-               len_full_title);
+    if (strlen(message) > 0) {
+      DrawString(i, cx - tw_message / 2, y, is_warning, message, len_message);
+    } else {
+      DrawString(i, cx - tw_prompt / 2, y, is_warning, prompt, len_prompt);
+    }
     y += th * 2;
 
-    DrawString(i, cx - tw_str / 2, y, is_warning, str, len_str);
-    y += th;
-
-    DrawString(i, cx - tw_indicators / 2, y, indicators_warning, indicators,
-               len_indicators);
+    DrawString(i, cx - tw_indicators / 2, y, indicators_warning, indicators, len_indicators);
     y += th;
 
     if (have_multiple_layouts) {
-      DrawString(i, cx - tw_switch_layout / 2, y, 0, switch_layout,
-                 len_switch_layout);
+      DrawString(i, cx - tw_switch_layout / 2, y, 0, switch_layout, len_switch_layout);
       y += th;
     }
 
     if (have_switch_user_command) {
-      DrawString(i, cx - tw_switch_user / 2, y, 0, switch_user,
-                 len_switch_user);
-      // y += th;
+      DrawString(i, cx - tw_switch_user / 2, y, 0, switch_user, len_switch_user);
     }
   }
 
@@ -851,7 +835,7 @@ void ShowFromArray(const char **array, size_t displaymarker, char *displaybuf,
  *   (password entry).
  * \return 1 if successful, anything else otherwise.
  */
-int Prompt(const char *msg, char **response, int echo) {
+int Prompt(char *msg, char **response, int echo) {
   // Ask something. Return strdup'd string.
   struct {
     // The received X11 event.
@@ -889,7 +873,7 @@ int Prompt(const char *msg, char **response, int echo) {
     LogErrno("mlock");
     // We continue anyway, as the user being unable to unlock the screen is
     // worse. But let's alert the user.
-    DisplayMessage("Error", "Password will not be stored securely.", 1);
+    RenderContext("Error", "Password will not be stored securely.", 1);
     WaitForKeypress(1);
   }
 
@@ -947,7 +931,7 @@ int Prompt(const char *msg, char **response, int echo) {
         }
       }
     }
-    DisplayMessage(msg, priv.displaybuf, 0);
+    RenderContext(msg, priv.displaybuf, 0);
 
     if (!played_sound) {
       PlaySound(SOUND_PROMPT);
@@ -1048,7 +1032,7 @@ int Prompt(const char *msg, char **response, int echo) {
             LogErrno("mlock");
             // We continue anyway, as the user being unable to unlock the screen
             // is worse. But let's alert the user of this.
-            DisplayMessage("Error", "Password has not been stored securely.",
+            RenderContext("Error", "Password has not been stored securely.",
                            1);
             WaitForKeypress(1);
           }
@@ -1181,14 +1165,14 @@ int Authenticate() {
     char type = ReadPacket(requestfd[0], &message, 1);
     switch (type) {
       case PTYPE_INFO_MESSAGE:
-        DisplayMessage("PAM says", message, 0);
+        RenderContext("PAM says", message, 0);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_INFO);
         WaitForKeypress(1);
         break;
       case PTYPE_ERROR_MESSAGE:
-        DisplayMessage("Error", message, 1);
+        RenderContext("Error", message, 1);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_ERROR);
@@ -1204,7 +1188,7 @@ int Authenticate() {
         }
         explicit_bzero(message, strlen(message));
         free(message);
-        DisplayMessage("Processing...", "", 0);
+        RenderContext("Processing...", "", 0);
         break;
       case PTYPE_PROMPT_LIKE_PASSWORD:
         if (Prompt(message, &response, 0)) {
@@ -1216,7 +1200,7 @@ int Authenticate() {
         }
         explicit_bzero(message, strlen(message));
         free(message);
-        DisplayMessage("Processing...", "", 0);
+        RenderContext("Processing...", "", 0);
         break;
       case 0:
         goto done;
