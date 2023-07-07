@@ -76,12 +76,6 @@ const char *authproto_executable;
 //! The maximum time to wait at a prompt for user input in seconds.
 int prompt_timeout;
 
-//! Border of the window around the text.
-#define WINDOW_BORDER 16
-
-//! Draw border rectangle (mainly for debugging).
-#undef DRAW_BORDER
-
 //! Extra line spacing.
 #define LINE_SPACING 4
 
@@ -721,9 +715,9 @@ void RenderContext(char *prompt, char *message, int is_warning) {
     box_w = tw_indicators;
   }
 
-  int box_h = (4 + have_multiple_layouts) * th;
-  int region_w = box_w + 2 * WINDOW_BORDER;
-  int region_h = box_h + 2 * WINDOW_BORDER;
+  int box_h = 4 * th;
+  int region_w = box_w;
+  int region_h = box_h;
 
   UpdatePerMonitorWindows(per_monitor_windows_dirty, region_w, region_h);
   per_monitor_windows_dirty = 0;
@@ -734,12 +728,6 @@ void RenderContext(char *prompt, char *message, int is_warning) {
     int y = cy + to - box_h / 2;
 
     XClearWindow(display, windows[i]);
-
-#ifdef DRAW_BORDER
-    XDrawRectangle(display, windows[i], gcs[i],     //
-                   cx - box_w / 2, cy - box_h / 2,  //
-                   box_w - 1, box_h - 1);
-#endif
 
     if (strlen(message) > 0) {
       DrawString(i, cx - tw_message / 2, y, is_warning, message, len_message);
