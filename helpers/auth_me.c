@@ -334,7 +334,7 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
 
   p = buf;
 
-  const char *word = "Keyboard-----: ";
+  const char *word = "";
   size_t n = strlen(word);
   if (n >= sizeof(buf) - (p - buf)) {
     Log("Not enough space to store intro '%s'", word);
@@ -711,14 +711,6 @@ void RenderContext(char *prompt, char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(indicators, len_indicators);
 
-  const char *switch_layout = have_multiple_layouts ? "Press Ctrl-Tab to switch keyboard layout" : "";
-  int len_switch_layout = strlen(switch_layout);
-  int tw_switch_layout = TextWidth(switch_layout, len_switch_layout);
-
-  const char *switch_user = have_switch_user_command ? "Press Ctrl-Alt-O or Win-O to switch user" : "";
-  int len_switch_user = strlen(switch_user);
-  int tw_switch_user = TextWidth(switch_user, len_switch_user);
-
   // Compute the region we will be using, relative to cx and cy.
   int box_w = tw_prompt;
 
@@ -728,13 +720,8 @@ void RenderContext(char *prompt, char *message, int is_warning) {
   if (box_w < tw_indicators) {
     box_w = tw_indicators;
   }
-  if (box_w < tw_switch_layout) {
-    box_w = tw_switch_layout;
-  }
-  if (box_w < tw_switch_user) {
-    box_w = tw_switch_user;
-  }
-  int box_h = (4 + have_multiple_layouts + have_switch_user_command) * th;
+
+  int box_h = (4 + have_multiple_layouts) * th;
   int region_w = box_w + 2 * WINDOW_BORDER;
   int region_h = box_h + 2 * WINDOW_BORDER;
 
@@ -762,16 +749,6 @@ void RenderContext(char *prompt, char *message, int is_warning) {
     y += th * 2;
 
     DrawString(i, cx - tw_indicators / 2, y, indicators_warning, indicators, len_indicators);
-    y += th;
-
-    if (have_multiple_layouts) {
-      DrawString(i, cx - tw_switch_layout / 2, y, 0, switch_layout, len_switch_layout);
-      y += th;
-    }
-
-    if (have_switch_user_command) {
-      DrawString(i, cx - tw_switch_user / 2, y, 0, switch_user, len_switch_user);
-    }
   }
 
   // Make the things just drawn appear on the screen as soon as possible.
