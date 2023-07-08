@@ -24,7 +24,6 @@ limitations under the License.
 #include <sys/time.h>    // for gettimeofday, timeval
 #include <time.h>        // for time, nanosleep, localtime_r
 #include <unistd.h>      // for close, _exit, dup2, pipe, dup
-#include <regex.h>       // for compile and check regular expressions
 
 #if __STDC_VERSION__ >= 199901L
 #include <inttypes.h>
