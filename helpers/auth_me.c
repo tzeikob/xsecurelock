@@ -1244,7 +1244,7 @@ int main(int argc_local, char **argv_local) {
 
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
 
-  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
+  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 60);
 
   //! Updated flag for password display choice
   const char *password_prompt_flag;
