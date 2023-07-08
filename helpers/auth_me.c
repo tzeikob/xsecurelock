@@ -91,9 +91,6 @@ const char *PasswordPromptStrings[] = {
 
 enum PasswordPrompt password_prompt;
 
-//! If set, we can start a new login session.
-int have_switch_user_command;
-
 //! The local hostname.
 char hostname[256];
 
@@ -1251,7 +1248,6 @@ int main(int argc_local, char **argv_local) {
   password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
   password_prompt = GetPasswordPromptFromFlags(password_prompt_flag);
 
-  have_switch_user_command = !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
   single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
 
