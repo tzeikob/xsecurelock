@@ -1126,30 +1126,18 @@ int Authenticate() {
     char type = ReadPacket(requestfd[0], &message, 1);
     switch (type) {
       case PTYPE_INFO_MESSAGE:
-        RenderContext("PAM says", message, 0);
+        RenderContext("", message, 0);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_INFO);
         WaitForKeypress(1);
         break;
       case PTYPE_ERROR_MESSAGE:
-        RenderContext("Error", message, 1);
+        RenderContext("", message, 1);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_ERROR);
         WaitForKeypress(1);
-        break;
-      case PTYPE_PROMPT_LIKE_USERNAME:
-        if (Prompt(message, &response, 1)) {
-          WritePacket(responsefd[1], PTYPE_RESPONSE_LIKE_USERNAME, response);
-          explicit_bzero(response, strlen(response));
-          free(response);
-        } else {
-          WritePacket(responsefd[1], PTYPE_RESPONSE_CANCELLED, "");
-        }
-        explicit_bzero(message, strlen(message));
-        free(message);
-        RenderContext("Processing...", "", 0);
         break;
       case PTYPE_PROMPT_LIKE_PASSWORD:
         if (Prompt(message, &response, 0)) {
@@ -1161,7 +1149,7 @@ int Authenticate() {
         }
         explicit_bzero(message, strlen(message));
         free(message);
-        RenderContext("Processing...", "", 0);
+        RenderContext("Please wait...", "", 0);
         break;
       case 0:
         goto done;
