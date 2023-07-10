@@ -32,7 +32,7 @@
 
 # Binaries.
 /auth_x11
-/auth_me
+/auth_stack
 /authproto_pam
 /cat_authproto
 /dimmer

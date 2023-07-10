@@ -497,7 +497,7 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region
     windows[i] =
         XCreateWindow(display, parent_window, x, y, w, h, 0, CopyFromParent,
                       InputOutput, CopyFromParent, CWBackPixel, &attrs);
-    SetWMProperties(display, windows[i], "xsecurelock", "auth_me_screen", argc,
+    SetWMProperties(display, windows[i], "xsecurelock", "auth_stack_screen", argc,
                     argv);
     // We should always make sure that main_window stays on top of all others.
     // I.e. our auth sub-windows shall between "sandwiched" between auth and
@@ -675,17 +675,7 @@ void StrAppend(char **output, size_t *output_size, const char *input,
  * \param message A long message.
  * \param is_warning Whether to use the warning style.
  */
-void RenderContext(char *prompt, char *message, int is_warning) {
-  if (strstr(prompt, "Password:") != NULL) {
-    prompt = "Enter your password:";
-  }
-
-  if (strstr(message, "The account is locked") != NULL) {
-    message = "Ooops you're locked!";
-  } else if (strstr(message, "to unlock") != NULL) {
-    message = "Please try again later.";
-  }
-
+void RenderContext(const char *prompt, const char *message, int is_warning) {
   int th = TextAscent() + TextDescent() + LINE_SPACING;
   int to = TextAscent() + LINE_SPACING / 2;  // Text at to fits into 0 to th.
 
@@ -1216,7 +1206,7 @@ XftFont *FixedXftFontOpenName(Display *display, int screen,
 
 /*! \brief The main program.
  *
- * Usage: XSCREENSAVER_WINDOW=window_id ./auth_me; status=$?
+ * Usage: XSCREENSAVER_WINDOW=window_id ./auth_stack; status=$?
  *
  * \return 0 if authentication successful, anything else otherwise.
  */
