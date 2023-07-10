@@ -1131,6 +1131,7 @@ int Authenticate() {
         break;
       case PTYPE_PROMPT_LIKE_PASSWORD:
         if (Prompt(message, &response, 0)) {
+          RenderContext("Processing...", "", 0);
           WritePacket(responsefd[1], PTYPE_RESPONSE_LIKE_PASSWORD, response);
           explicit_bzero(response, strlen(response));
           free(response);
@@ -1139,7 +1140,6 @@ int Authenticate() {
         }
         explicit_bzero(message, strlen(message));
         free(message);
-        RenderContext("Please wait...", "", 0);
         break;
       case 0:
         goto done;
