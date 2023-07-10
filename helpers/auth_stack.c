@@ -741,41 +741,11 @@ void WaitForKeypress(int seconds) {
   select(1, &set, NULL, NULL, &timeout);
 }
 
-/*! \brief Bump the position for the password "cursor".
- *
- * If pwlen > 0:
- * Precondition: pos in 0..PARANOID_PASSWORD_LENGTH-1.
- * Postcondition: pos' in 1..PARANOID_PASSWORD_LENGTH-1.
- * Postcondition: abs(pos' - pos) >= PARANOID_PASSWORD_MIN_CHANGE.
- * Postcondition: pos' is uniformly distributed among all permitted choices.
- * If pwlen == 0:
- * Postcondition: pos' is 0.
- *
- * \param pwlen The current password length.
- * \param pos The initial cursor position; will get updated.
- * \param last_keystroke The time of last keystroke; will get updated.
- */
-void BumpDisplayMarker(size_t pwlen, size_t *pos, struct timeval *last_keystroke) {
-  gettimeofday(last_keystroke, NULL);
-
-  // Always put at 0
-  *pos = 0;
-  return;
-}
-
 //! The size of the buffer to store the password in. Not NUL terminated.
 #define PWBUF_SIZE 256
 
 //! The size of the buffer to use for display, with space for cursor and NUL.
 #define DISPLAYBUF_SIZE (PWBUF_SIZE + 2)
-
-void ShowFromArray(const char **array, size_t displaymarker, char *displaybuf,
-                   size_t displaybufsize, size_t *displaylen) {
-  const char *selection = array[displaymarker];
-  strncpy(displaybuf, selection, displaybufsize);
-  displaybuf[displaybufsize - 1] = 0;
-  *displaylen = strlen(selection);
-}
 
 /*! \brief Ask a question to the user.
  *
@@ -803,10 +773,6 @@ int Prompt(char *msg, char **response, int echo) {
     // Display buffer length.
     size_t displaylen;
 
-    // The display marker changes on every input action to a value from 0 to
-    // PARANOID_PASSWORD-1. It indicates where to display the "cursor".
-    size_t displaymarker;
-
     // Character read buffer.
     char inputbuf;
 
@@ -829,7 +795,6 @@ int Prompt(char *msg, char **response, int echo) {
   }
 
   priv.pwlen = 0;
-  priv.displaymarker = 0;
 
   time_t deadline = time(NULL) + prompt_timeout;
 
@@ -949,8 +914,6 @@ int Prompt(char *msg, char **response, int echo) {
             priv.pos += priv.len;
           }
           priv.pwlen = priv.prevpos;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         }
         case '\001':  // Ctrl-A.
@@ -958,8 +921,6 @@ int Prompt(char *msg, char **response, int echo) {
           // requested. In most toolkits, Ctrl-A does not immediately erase but
           // almost every keypress other than arrow keys will erase afterwards.
           priv.pwlen = 0;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         case '\023':  // Ctrl-S.
           SwitchKeyboardLayout();
@@ -969,8 +930,6 @@ int Prompt(char *msg, char **response, int echo) {
           // i3lock: supports Ctrl-U but not Ctrl-A.
           // xscreensaver: supports Ctrl-U and Ctrl-X but not Ctrl-A.
           priv.pwlen = 0;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         case 0:       // Shouldn't happen.
         case '\033':  // Escape.
@@ -1004,8 +963,6 @@ int Prompt(char *msg, char **response, int echo) {
           if (priv.pwlen < sizeof(priv.pwbuf)) {
             priv.pwbuf[priv.pwlen] = priv.inputbuf;
             ++priv.pwlen;
-            BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                              &priv.last_keystroke);
           } else {
             Log("Password entered is too long - bailing out");
             done = 1;
