@@ -75,18 +75,8 @@ int prompt_timeout;
 //! Extra line spacing.
 #define LINE_SPACING 4
 
-//! Actual password prompt selected
-enum PasswordPrompt {
-  PASSWORD_PROMPT_ASTERISKS,
-  PASSWORD_PROMPT_HIDDEN,
-  PASSWORD_PROMPT_COUNT
-};
-const char *PasswordPromptStrings[] = {
-    /* PASSWORD_PROMPT_ASTERISKS= */ "asterisks",
-    /* PASSWORD_PROMPT_HIDDEN= */ "hidden",
-};
-
-enum PasswordPrompt password_prompt;
+//! The prompt input mode, hidden or asterisks
+const char *password_prompt;
 
 //! The local hostname.
 char hostname[256];
@@ -813,35 +803,28 @@ int Prompt(char *msg, char **response, int echo) {
       priv.displaybuf[priv.displaylen] = *cursor;
       priv.displaybuf[priv.displaylen + 1] = '\0';
     } else {
-      switch (password_prompt) {
-        case PASSWORD_PROMPT_HIDDEN: {
-          priv.displaylen = 0;
-          priv.displaybuf[0] = '\0';
-          break;
-        }
-
-        default:
-        case PASSWORD_PROMPT_ASTERISKS: {
-          mblen(NULL, 0);
-          priv.pos = priv.displaylen = 0;
-          while (priv.pos < priv.pwlen) {
-            ++priv.displaylen;
-            // Note: this won't read past priv.pwlen.
-            priv.len = mblen(priv.pwbuf + priv.pos, priv.pwlen - priv.pos);
-            if (priv.len <= 0) {
-              // This guarantees to "eat" one byte each step. Therefore,
-              // priv.displaylen <= priv.pwlen is ensured.
-              break;
-            }
-            priv.pos += priv.len;
+      if (strcmp(password_prompt, "hidden") == 0) {
+        priv.displaylen = 0;
+        priv.displaybuf[0] = '\0';
+      } else {
+        mblen(NULL, 0);
+        priv.pos = priv.displaylen = 0;
+        while (priv.pos < priv.pwlen) {
+          ++priv.displaylen;
+          // Note: this won't read past priv.pwlen.
+          priv.len = mblen(priv.pwbuf + priv.pos, priv.pwlen - priv.pos);
+          if (priv.len <= 0) {
+            // This guarantees to "eat" one byte each step. Therefore,
+            // priv.displaylen <= priv.pwlen is ensured.
+            break;
           }
-          memset(priv.displaybuf, '*', priv.displaylen);
-          // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
-          // priv.pwlen + 2 <= sizeof(priv.displaybuf).
-          priv.displaybuf[priv.displaylen] = *cursor;
-          priv.displaybuf[priv.displaylen + 1] = '\0';
-          break;
+          priv.pos += priv.len;
         }
+        memset(priv.displaybuf, '*', priv.displaylen);
+        // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
+        // priv.pwlen + 2 <= sizeof(priv.displaybuf).
+        priv.displaybuf[priv.displaylen] = *cursor;
+        priv.displaybuf[priv.displaylen + 1] = '\0';
       }
     }
     RenderContext(msg, priv.displaybuf, 0);
@@ -1118,21 +1101,6 @@ done:
   return status != 0;
 }
 
-enum PasswordPrompt GetPasswordPromptFromFlags(const char *password_prompt_flag) {
-  if (!*password_prompt_flag) {
-    return PASSWORD_PROMPT_ASTERISKS;
-  }
-
-  for (enum PasswordPrompt prompt = 0; prompt < PASSWORD_PROMPT_COUNT; ++prompt) {
-    if (strcmp(password_prompt_flag, PasswordPromptStrings[prompt]) == 0) {
-      return prompt;
-    }
-  }
-
-  Log("Invalid XSECURELOCK_PASSWORD_PROMPT value; defaulting to asterisks");
-  return PASSWORD_PROMPT_ASTERISKS;
-}
-
 #ifdef HAVE_XFT_EXT
 XftFont *FixedXftFontOpenName(Display *display, int screen,
                               const char *font_name) {
@@ -1172,14 +1140,8 @@ int main(int argc_local, char **argv_local) {
   setlocale(LC_TIME, "");
 
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
-
   prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 60);
-
-  //! Updated flag for password display choice
-  const char *password_prompt_flag;
-  password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
-  password_prompt = GetPasswordPromptFromFlags(password_prompt_flag);
-
+  password_prompt = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "asterisks");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
   single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
 
