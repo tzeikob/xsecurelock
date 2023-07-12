@@ -922,8 +922,7 @@ int Prompt(char *msg, char **response, int echo) {
             LogErrno("mlock");
             // We continue anyway, as the user being unable to unlock the screen
             // is worse. But let's alert the user of this.
-            RenderContext("Error", "Password has not been stored securely.",
-                           1);
+            RenderContext("", "Password has not been stored securely.", 1);
             WaitForKeypress(1);
           }
           if (priv.pwlen != 0) {
