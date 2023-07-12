@@ -240,9 +240,7 @@ void SwitchKeyboardLayout(void) {
     return;
   }
 
-  XkbLockGroup(display, XkbUseCoreKbd,
-               (state.group + 1) % xkb->ctrls->num_groups);
-
+  XkbLockGroup(display, XkbUseCoreKbd, (state.group + 1) % xkb->ctrls->num_groups);
   XkbFreeKeyboard(xkb, 0, True);
 #endif
 }
@@ -614,16 +612,14 @@ int TextWidth(const char *string, int len) {
 #ifdef HAVE_XFT_EXT
   if (xft_font != NULL) {
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len,
-                       &extents);
+    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len, &extents);
     return extents.xOff + 2 * XGlyphInfoExpandAmount(&extents);
   }
 #endif
   return XTextWidth(core_font, string, len);
 }
 
-void DrawString(int monitor, int x, int y, int is_warning, const char *string,
-                int len) {
+void DrawString(int monitor, int x, int y, int is_warning, const char *string, int len) {
 #ifdef HAVE_XFT_EXT
   if (xft_font != NULL) {
     // HACK: Query text extents here to make the text fit into the specified
@@ -631,8 +627,7 @@ void DrawString(int monitor, int x, int y, int is_warning, const char *string,
     // we however do have to work around font descents being drawn to the left
     // of the cursor.
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len,
-                       &extents);
+    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len, &extents);
     XftDrawStringUtf8(xft_draws[monitor],
                       is_warning ? &xft_color_warning : &xft_color_foreground,
                       xft_font, x + XGlyphInfoExpandAmount(&extents), y,
@@ -645,8 +640,7 @@ void DrawString(int monitor, int x, int y, int is_warning, const char *string,
               len);
 }
 
-void StrAppend(char **output, size_t *output_size, const char *input,
-               size_t input_size) {
+void StrAppend(char **output, size_t *output_size, const char *input, size_t input_size) {
   if (*output_size <= input_size) {
     // Cut the input off. Sorry.
     input_size = *output_size - 1;
@@ -1101,8 +1095,7 @@ done:
 }
 
 #ifdef HAVE_XFT_EXT
-XftFont *FixedXftFontOpenName(Display *display, int screen,
-                              const char *font_name) {
+XftFont *FixedXftFontOpenName(Display *display, int screen, const char *font_name) {
   XftFont *xft_font = XftFontOpenName(display, screen, font_name);
 #ifdef HAVE_FONTCONFIG
   // Workaround for Xft crashing the process when trying to render a colored
