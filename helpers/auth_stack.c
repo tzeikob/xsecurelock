@@ -69,9 +69,6 @@ char *const *argv;
 //! The authproto helper to use.
 const char *authproto_executable;
 
-//! The blinking interval in microseconds.
-#define BLINK_INTERVAL (250 * 1000)
-
 //! The maximum time to wait at a prompt for user input in seconds.
 int prompt_timeout;
 
@@ -790,7 +787,7 @@ int Prompt(char *msg, char **response, int echo) {
     LogErrno("mlock");
     // We continue anyway, as the user being unable to unlock the screen is
     // worse. But let's alert the user.
-    RenderContext("Error", "Password will not be stored securely.", 1);
+    RenderContext("", "Password will not be stored securely.", 1);
     WaitForKeypress(1);
   }
 
@@ -855,8 +852,8 @@ int Prompt(char *msg, char **response, int echo) {
     }
 
     struct timeval timeout;
-    timeout.tv_sec = BLINK_INTERVAL / 1000000;
-    timeout.tv_usec = BLINK_INTERVAL % 1000000;
+    timeout.tv_sec = (250 * 1000) / 1000000;
+    timeout.tv_usec = (250 * 1000) % 1000000;
 
     while (!done) {
       fd_set set;
