@@ -1400,10 +1400,10 @@ int main(int argc, char **argv) {
             // We do check if something external wants to handle this key,
             // though.
             const char *keyname = XKeysymToString(priv.keysym);
-            if (keyname != NULL) {
+            if (keyname != NULL && strcmp(keyname, "XF86PowerOff") != 0) {
               char buf[64];
-              int buflen = snprintf(buf, sizeof(buf),
-                                    "XSECURELOCK_KEY_%s_COMMAND", keyname);
+              int buflen = snprintf(buf, sizeof(buf), "XSECURELOCK_KEY_%s_COMMAND", keyname);
+
               if (buflen <= 0 || (size_t)buflen >= sizeof(buf)) {
                 Log("Wow, pretty long keysym names you got there");
               } else {
@@ -1420,6 +1420,8 @@ int main(int argc, char **argv) {
                   }
                 }
               }
+            } else {
+              do_wake_up = 0;
             }
           }
           // Now if so desired, wake up the login prompt, and check its
