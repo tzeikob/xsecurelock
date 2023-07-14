@@ -522,14 +522,7 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region
   num_windows = i + 1;
 }
 
-void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h) {
-  static size_t num_monitors = 0;
-  static Monitor monitors[MAX_WINDOWS];
-
-  if (monitors_changed) {
-    num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
-  }
-
+void UpdatePerMonitorWindows(Monitor* monitors, size_t num_monitors, int region_w, int region_h) {
   if (single_auth_window) {
     Window unused_root, unused_child;
     int unused_root_x, unused_root_y, x, y;
@@ -672,27 +665,25 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(indicators, len_indicators);
 
-  // Compute the region we will be using, relative to cx and cy.
-  int box_w = tw_prompt;
+  int region_w = 500;
+  int region_h = 200;
 
-  if (box_w < tw_message) {
-    box_w = tw_message;
+  static size_t num_monitors = 0;
+  static Monitor monitors[MAX_WINDOWS];
+
+  if (per_monitor_windows_dirty) {
+    num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
+    region_w = monitors[0].width;
+    region_h = monitors[0].height;
   }
-  if (box_w < tw_indicators) {
-    box_w = tw_indicators;
-  }
 
-  int box_h = 4 * th;
-  int region_w = box_w;
-  int region_h = box_h;
-
-  UpdatePerMonitorWindows(per_monitor_windows_dirty, region_w, region_h);
+  UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
     int cx = region_w / 2;
     int cy = region_h / 2;
-    int y = cy + to - box_h / 2;
+    int y = cy + to - 200 / 2;
 
     XClearWindow(display, windows[i]);
 
