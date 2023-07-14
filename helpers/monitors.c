@@ -182,12 +182,17 @@ static int GetMonitorsXRandR15(Display* dpy, Window window, int wx, int wy,
   }
   for (int i = 0; i < num_rrmonitors; ++i) {
     XRRMonitorInfo* info = &rrmonitors[i];
-    int x = CLAMP(info->x, wx, wx + ww) - wx;
-    int y = CLAMP(info->y, wy, wy + wh) - wy;
-    int w = CLAMP(info->x + info->width, wx + x, wx + ww) - (wx + x);
-    int h = CLAMP(info->y + info->height, wy + y, wy + wh) - (wy + y);
-    AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h);
+    
+    if (info->primary) {
+      int x = CLAMP(info->x, wx, wx + ww) - wx;
+      int y = CLAMP(info->y, wy, wy + wh) - wy;
+      int w = CLAMP(info->x + info->width, wx + x, wx + ww) - (wx + x);
+      int h = CLAMP(info->y + info->height, wy + y, wy + wh) - (wy + y);
+
+      AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h);
+    }
   }
+  
   XRRFreeMonitors(rrmonitors);
   return *out_num_monitors != 0;
 }
