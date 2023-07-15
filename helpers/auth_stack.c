@@ -665,17 +665,12 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(indicators, len_indicators);
 
-  int region_w = 500;
-  int region_h = 200;
-
   static size_t num_monitors = 0;
   static Monitor monitors[MAX_WINDOWS];
 
-  if (per_monitor_windows_dirty) {
-    num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
-    region_w = monitors[0].width;
-    region_h = monitors[0].height;
-  }
+  num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
+  int region_w = monitors[0].width;
+  int region_h = monitors[0].height;
 
   UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
   per_monitor_windows_dirty = 0;
@@ -683,18 +678,19 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   for (size_t i = 0; i < num_windows; ++i) {
     int cx = region_w / 2;
     int cy = region_h / 2;
-    int y = cy + to - 200 / 2;
 
     XClearWindow(display, windows[i]);
 
     if (strlen(message) > 0) {
-      DrawString(i, cx - tw_message / 2, y, is_warning, message, len_message);
+      DrawString(i, cx - tw_message / 2, cy, is_warning, message, len_message);
     } else {
-      DrawString(i, cx - tw_prompt / 2, y, is_warning, prompt, len_prompt);
+      DrawString(i, cx - tw_prompt / 2, cy, is_warning, prompt, len_prompt);
     }
-    y += th * 2;
 
-    DrawString(i, cx - tw_indicators / 2, y, indicators_warning, indicators, len_indicators);
+    int x = region_w - tw_indicators - 5;
+    int y = region_h - 5;
+
+    DrawString(i, x, y, indicators_warning, indicators, len_indicators);
   }
 
   // Make the things just drawn appear on the screen as soon as possible.
