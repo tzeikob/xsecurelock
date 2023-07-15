@@ -643,6 +643,17 @@ void StrAppend(char **output, size_t *output_size, const char *input, size_t inp
   *output_size -= input_size;
 }
 
+void BuildLogin(char *output, size_t output_size) {
+  size_t username_len = strlen(username);
+  StrAppend(&output, &output_size, username, username_len);
+  StrAppend(&output, &output_size, "@", 1);
+  
+  size_t hostname_len = strcspn(hostname, ".");
+  StrAppend(&output, &output_size, hostname, hostname_len);
+
+  *output = 0;
+}
+
 /*! \brief Render the conext of the auth module.
  *
  * \param prompt A prompt text.
@@ -658,6 +669,10 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
 
   int len_message = strlen(message);
   int tw_message = TextWidth(message, len_message);
+
+  char login[256];
+  BuildLogin(login, sizeof(login));
+  int len_login = strlen(login);
 
   int indicators_warning = 0;
   int have_multiple_layouts = 0;
@@ -687,9 +702,11 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
       DrawString(i, cx - tw_prompt / 2, cy, is_warning, prompt, len_prompt);
     }
 
-    int x = region_w - tw_indicators - 5;
+    int x = 5;
     int y = region_h - 5;
+    DrawString(i, x, y, 0, login, len_login);
 
+    x = region_w - tw_indicators - 5;
     DrawString(i, x, y, indicators_warning, indicators, len_indicators);
   }
 
