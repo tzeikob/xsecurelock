@@ -73,7 +73,7 @@ const char *authproto_executable;
 int prompt_timeout;
 
 //! Extra line spacing.
-#define LINE_SPACING 4
+#define LINE_SPACING 5
 
 //! The prompt input mode, hidden or asterisks
 const char *password_prompt;
@@ -439,7 +439,7 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region
   int w = region_w;
   int h = region_h;
   int x = monitor->x + (monitor->width - w) / 2;
-  int y = monitor->y + (monitor->height - h) / 2;
+  int y = monitor->height - h;
   // Clip to monitor.
   if (x < 0) {
     w += x;
@@ -685,14 +685,14 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
 
   num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
   int region_w = monitors[0].width;
-  int region_h = monitors[0].height;
+  int region_h = monitors[0].height * 0.55;
 
   UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
     int cx = region_w / 2;
-    int cy = region_h / 2;
+    int cy = th + to;
 
     XClearWindow(display, windows[i]);
 
