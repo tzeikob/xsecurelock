@@ -694,19 +694,19 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
-    int cx = region_w / 2;
-    int cy = th + to;
+    int x = region_w / 2;
+    int y = th + to;
 
     XClearWindow(display, windows[i]);
 
     if (strlen(message) > 0) {
-      DrawString(i, cx - tw_message / 2, cy, is_warning, message, len_message);
+      DrawString(i, x - tw_message / 2, y, is_warning, message, len_message);
     } else {
-      DrawString(i, cx - tw_prompt / 2, cy, is_warning, prompt, len_prompt);
+      DrawString(i, x - tw_prompt / 2, y, is_warning, prompt, len_prompt);
     }
 
-    int x = 5;
-    int y = region_h - 5;
+    x = 5;
+    y = region_h - 5;
     DrawString(i, x, y, 0, login, len_login);
 
     x = region_w - tw_indicators - 5;
