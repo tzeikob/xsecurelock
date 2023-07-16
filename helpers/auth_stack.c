@@ -385,6 +385,10 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
       if (namea == None) {
         continue;
       }
+      char *name = XGetAtomName(display, namea);
+      if (strcmp(name, "Caps Lock") != 0) {
+        continue;
+      }
       if (have_output) {
         if (2 >= sizeof(buf) - (p - buf)) {
           Log("Not enough space to store another modifier name");
@@ -393,7 +397,6 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
         memcpy(p, ", ", 2);
         p += 2;
       }
-      char *name = XGetAtomName(display, namea);
       size_t n = strlen(name);
       if (n >= sizeof(buf) - (p - buf)) {
         Log("Not enough space to store modifier name '%s'", name);
