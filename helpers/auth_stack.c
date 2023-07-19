@@ -101,6 +101,7 @@ XFontStruct *core_font;
 XftColor xft_color_foreground;
 XftColor xft_color_warning;
 XftFont *xft_font;
+XftFont *xft_font_large;
 #endif
 
 //! The background color.
@@ -565,19 +566,19 @@ void UpdatePerMonitorWindows(Monitor* monitors, size_t num_monitors, int region_
   }
 }
 
-int TextAscent(void) {
+int TextAscent(XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
-    return xft_font->ascent;
+  if (font != NULL) {
+    return font->ascent;
   }
 #endif
   return core_font->max_bounds.ascent;
 }
 
-int TextDescent(void) {
+int TextDescent(XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
-    return xft_font->descent;
+  if (font != NULL) {
+    return font->descent;
   }
 #endif
   return core_font->max_bounds.descent;
@@ -604,29 +605,29 @@ int XGlyphInfoExpandAmount(XGlyphInfo *extents) {
 }
 #endif
 
-int TextWidth(const char *string, int len) {
+int TextWidth(XftFont *font, const char *string, int len) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
+  if (font != NULL) {
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len, &extents);
+    XftTextExtentsUtf8(display, font, (const FcChar8 *)string, len, &extents);
     return extents.xOff + 2 * XGlyphInfoExpandAmount(&extents);
   }
 #endif
   return XTextWidth(core_font, string, len);
 }
 
-void DrawString(int monitor, int x, int y, int is_warning, const char *string, int len) {
+void DrawString(int monitor, int x, int y, int is_warning, const char *string, int len, XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
+  if (font != NULL) {
     // HACK: Query text extents here to make the text fit into the specified
     // box. For y this is covered by the usual ascent/descent behavior - for x
     // we however do have to work around font descents being drawn to the left
     // of the cursor.
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len, &extents);
+    XftTextExtentsUtf8(display, font, (const FcChar8 *)string, len, &extents);
     XftDrawStringUtf8(xft_draws[monitor],
                       is_warning ? &xft_color_warning : &xft_color_foreground,
-                      xft_font, x + XGlyphInfoExpandAmount(&extents), y,
+                      font, x + XGlyphInfoExpandAmount(&extents), y,
                       (const FcChar8 *)string, len);
     return;
   }
@@ -664,14 +665,14 @@ void BuildLogin(char *output, size_t output_size) {
  * \param is_warning Whether to use the warning style.
  */
 void RenderContext(const char *prompt, const char *message, int is_warning) {
-  int th = TextAscent() + TextDescent() + LINE_SPACING;
-  int to = TextAscent() + LINE_SPACING / 2;  // Text at to fits into 0 to th.
+  int th = TextAscent(xft_font_large) + TextDescent(xft_font_large) + LINE_SPACING;
+  int to = TextAscent(xft_font_large) + LINE_SPACING / 2;  // Text at to fits into 0 to th.
 
   int len_prompt = strlen(prompt);
-  int tw_prompt = TextWidth(prompt, len_prompt);
+  int tw_prompt = TextWidth(xft_font_large, prompt, len_prompt);
 
   int len_message = strlen(message);
-  int tw_message = TextWidth(message, len_message);
+  int tw_message = TextWidth(xft_font_large, message, len_message);
 
   char login[256];
   BuildLogin(login, sizeof(login));
@@ -681,7 +682,7 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int have_multiple_layouts = 0;
   const char *indicators = GetIndicators(&indicators_warning, &have_multiple_layouts);
   int len_indicators = strlen(indicators);
-  int tw_indicators = TextWidth(indicators, len_indicators);
+  int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
   static size_t num_monitors = 0;
   static Monitor monitors[MAX_WINDOWS];
@@ -700,17 +701,17 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
     XClearWindow(display, windows[i]);
 
     if (strlen(message) > 0) {
-      DrawString(i, x - tw_message / 2, y, is_warning, message, len_message);
+      DrawString(i, x - tw_message / 2, y, is_warning, message, len_message, xft_font_large);
     } else {
-      DrawString(i, x - tw_prompt / 2, y, is_warning, prompt, len_prompt);
+      DrawString(i, x - tw_prompt / 2, y, is_warning, prompt, len_prompt, xft_font_large);
     }
 
     x = 5;
     y = region_h - 5;
-    DrawString(i, x, y, 0, login, len_login);
+    DrawString(i, x, y, 0, login, len_login, xft_font);
 
     x = region_w - tw_indicators - 5;
-    DrawString(i, x, y, indicators_warning, indicators, len_indicators);
+    DrawString(i, x, y, indicators_warning, indicators, len_indicators, xft_font);
   }
 
   // Make the things just drawn appear on the screen as soon as possible.
@@ -1125,6 +1126,33 @@ XftFont *FixedXftFontOpenName(Display *display, int screen, const char *font_nam
 }
 #endif
 
+#ifdef HAVE_XFT_EXT
+XftFont *FixedXftFontOpen(Display *display, int screen, const char *font_name) {
+  XftFont *xft_font = XftFontOpen (display, screen,
+                                 XFT_FAMILY, XftTypeString, font_name,
+                                 XFT_SIZE, XftTypeDouble, 22.0,
+                                 NULL);
+#ifdef HAVE_FONTCONFIG
+  // Workaround for Xft crashing the process when trying to render a colored
+  // font. See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=916349 and
+  // https://gitlab.freedesktop.org/xorg/lib/libxft/issues/6 among others. In
+  // the long run this should be ported to a different font rendering library
+  // than Xft.
+  FcBool iscol;
+  if (xft_font != NULL &&
+      FcPatternGetBool(xft_font->pattern, FC_COLOR, 0, &iscol) && iscol) {
+    Log("Colored font %s is not supported by Xft", font_name);
+    XftFontClose(display, xft_font);
+    return NULL;
+  }
+#else
+#warning "Xft enabled without fontconfig. May crash trying to use emoji fonts."
+  Log("Xft enabled without fontconfig. May crash trying to use emoji fonts.");
+#endif
+  return xft_font;
+}
+#endif
+
 /*! \brief The main program.
  *
  * Usage: XSCREENSAVER_WINDOW=window_id ./auth_stack; status=$?
@@ -1199,6 +1227,7 @@ int main(int argc_local, char **argv_local) {
   core_font = NULL;
 #ifdef HAVE_XFT_EXT
   xft_font = NULL;
+  xft_font_large = NULL;
 #endif
 
   const char *font_name = GetStringSetting("XSECURELOCK_FONT", "");
@@ -1212,8 +1241,8 @@ int main(int argc_local, char **argv_local) {
     have_font = (core_font != NULL);
 #ifdef HAVE_XFT_EXT
     if (!have_font) {
-      xft_font =
-          FixedXftFontOpenName(display, DefaultScreen(display), font_name);
+      xft_font = FixedXftFontOpenName(display, DefaultScreen(display), font_name);
+      xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), font_name);
       have_font = (xft_font != NULL);
     }
 #endif
@@ -1224,8 +1253,8 @@ int main(int argc_local, char **argv_local) {
           font_name);
     }
 #ifdef HAVE_XFT_EXT
-    xft_font =
-        FixedXftFontOpenName(display, DefaultScreen(display), "monospace");
+    xft_font = FixedXftFontOpenName(display, DefaultScreen(display), "monospace");
+    xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), "monospace");
     have_font = (xft_font != NULL);
 #endif
   }
@@ -1278,6 +1307,7 @@ int main(int argc_local, char **argv_local) {
                  DefaultColormap(display, DefaultScreen(display)),
                  &xft_color_foreground);
     XftFontClose(display, xft_font);
+    XftFontClose(display, xft_font_large);
   }
 #endif
 
