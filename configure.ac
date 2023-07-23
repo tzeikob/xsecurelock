@@ -175,10 +175,6 @@ RP_SEARCH_LIBS(XFixesSetWindowShapeRegion, Xfixes,
                [HAVE_XFIXES_EXT], [xfixes], [check],
                [Use the XFixes extension to work around some compositors])
 
-RP_SEARCH_PROG(htpasswd, [$PATH],
-               [HAVE_HTPASSWD], [htpasswd], [check],
-               [Install auth_htpasswd (specify --with-htpasswd=/usr/bin/htpasswd to set the path to use)])
-
 RP_SEARCH_PROG(pamtester, [$PATH],
                [HAVE_PAMTESTER], [pamtester], [check],
                [Install authproto_pamtester (specify --with-pamtester=/usr/bin to set the path to use)])
@@ -242,8 +238,6 @@ AC_ARG_WITH([default_authproto_module],
                             [authproto_executable=$withval],
                             [
                              authproto_executable=
-                             AS_IF([test x$have_htpasswd = xtrue],
-                                   [authproto_executable=authproto_htpasswd])
                              AS_IF([test x$have_pamtester = xtrue],
                                    [authproto_executable=authproto_pamtester])
                              AS_IF([test x$have_pam = xtrue],
@@ -280,8 +274,6 @@ AC_SUBST(auth_executable)
 AC_SUBST(authproto_executable)
 AC_SUBST(global_saver_executable)
 AC_SUBST(saver_executable)
-AC_SUBST(path_to_htpasswd)
-AC_SUBST(path_to_mplayer)
 AC_SUBST(path_to_pamtester)
 AC_SUBST(path_to_xscreensaver)
 AM_CONDITIONAL([PAM_CHECK_ACCOUNT_TYPE],
@@ -290,8 +282,6 @@ AM_CONDITIONAL([HAVE_IDLE_TIMER],
                [test x$have_xss = xtrue -o x$have_xsync = xtrue])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([helpers/authproto_htpasswd],
-                [chmod +x helpers/authproto_htpasswd])
 AC_CONFIG_FILES([helpers/authproto_pamtester],
                 [chmod +x helpers/authproto_pamtester])
 AC_CONFIG_FILES([helpers/saver_xscreensaver],

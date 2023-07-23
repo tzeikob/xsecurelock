@@ -12,7 +12,6 @@
 /config.status
 /configure
 /depcomp
-/helpers/authproto_htpasswd
 /helpers/authproto_pamtester
 /helpers/saver_xscreensaver
 /install-sh
