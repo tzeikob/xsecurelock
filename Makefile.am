@@ -83,10 +83,6 @@ xsecurelock_LDADD = $(LIBBSD_LIBS)
 helpersdir = $(pkglibexecdir)
 helpers_SCRIPTS = \
 	helpers/saver_blank
-if HAVE_PAMTESTER
-helpers_SCRIPTS += \
-	helpers/authproto_pamtester
-endif
 if HAVE_XSCREENSAVER
 helpers_SCRIPTS += \
 	helpers/saver_xscreensaver
