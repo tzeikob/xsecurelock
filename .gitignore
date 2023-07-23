@@ -30,12 +30,8 @@
 /auth_x11
 /auth_stack
 /authproto_pam
-/cat_authproto
 /dimmer
-/get_compositor
-/nvidia_break_compositor
 /pgrp_placeholder
-/remap_all
 /saver_multiplex
 /until_nonidle
 /xsecurelock

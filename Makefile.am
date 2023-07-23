@@ -194,23 +194,6 @@ xsecurelock.1: xsecurelock.1.md
 CLEANFILES += xsecurelock.1.md xsecurelock.1
 endif
 
-# Some tools that we sure don't wan to install
-noinst_PROGRAMS = cat_authproto nvidia_break_compositor get_compositor remap_all
-cat_authproto_SOURCES = \
-	logging.c logging.h \
-	helpers/authproto.c helpers/authproto.h \
-	test/cat_authproto.c
-nvidia_break_compositor_SOURCES = \
-	test/nvidia_break_compositor.c
-nvidia_break_compositor_CPPFLAGS = $(macros)
-get_compositor_SOURCES = \
-	test/get_compositor.c
-get_compositor_CPPFLAGS = $(macros)
-remap_all_SOURCES= \
-	test/remap_all.c \
-	unmap_all.c unmap_all.h
-remap_all_CPPFLAGS = $(macros)
-
 FORCE:
 version.c: FORCE
 	if [ -n "$(GIT_VERSION)" ]; then \
