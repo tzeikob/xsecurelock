@@ -87,10 +87,6 @@ if HAVE_HTPASSWD
 helpers_SCRIPTS += \
 	helpers/authproto_htpasswd
 endif
-if HAVE_MPLAYER
-helpers_SCRIPTS += \
-	helpers/saver_mplayer
-endif
 if HAVE_PAMTESTER
 helpers_SCRIPTS += \
 	helpers/authproto_pamtester

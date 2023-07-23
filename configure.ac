@@ -179,10 +179,6 @@ RP_SEARCH_PROG(htpasswd, [$PATH],
                [HAVE_HTPASSWD], [htpasswd], [check],
                [Install auth_htpasswd (specify --with-htpasswd=/usr/bin/htpasswd to set the path to use)])
 
-RP_SEARCH_PROG(mplayer, [$PATH],
-               [HAVE_MPLAYER], [mplayer], [check],
-               [Install saver_mplayer (specify --with-mplayer=/usr/bin/mplayer to set the path to use)])
-
 RP_SEARCH_PROG(pamtester, [$PATH],
                [HAVE_PAMTESTER], [pamtester], [check],
                [Install authproto_pamtester (specify --with-pamtester=/usr/bin to set the path to use)])
@@ -298,8 +294,6 @@ AC_CONFIG_FILES([helpers/authproto_htpasswd],
                 [chmod +x helpers/authproto_htpasswd])
 AC_CONFIG_FILES([helpers/authproto_pamtester],
                 [chmod +x helpers/authproto_pamtester])
-AC_CONFIG_FILES([helpers/saver_mplayer],
-                [chmod +x helpers/saver_mplayer])
 AC_CONFIG_FILES([helpers/saver_xscreensaver],
                 [chmod +x helpers/saver_xscreensaver])
 
