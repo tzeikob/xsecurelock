@@ -183,10 +183,6 @@ RP_SEARCH_PROG(mplayer, [$PATH],
                [HAVE_MPLAYER], [mplayer], [check],
                [Install saver_mplayer (specify --with-mplayer=/usr/bin/mplayer to set the path to use)])
 
-RP_SEARCH_PROG(mpv, [$PATH],
-               [HAVE_MPV], [mpv], [check],
-               [Install saver_mpv (specify --with-mpv=/usr/bin/mpv to set the path to use)])
-
 RP_SEARCH_PROG(pamtester, [$PATH],
                [HAVE_PAMTESTER], [pamtester], [check],
                [Install authproto_pamtester (specify --with-pamtester=/usr/bin to set the path to use)])
@@ -290,7 +286,6 @@ AC_SUBST(global_saver_executable)
 AC_SUBST(saver_executable)
 AC_SUBST(path_to_htpasswd)
 AC_SUBST(path_to_mplayer)
-AC_SUBST(path_to_mpv)
 AC_SUBST(path_to_pamtester)
 AC_SUBST(path_to_xscreensaver)
 AM_CONDITIONAL([PAM_CHECK_ACCOUNT_TYPE],
@@ -305,8 +300,6 @@ AC_CONFIG_FILES([helpers/authproto_pamtester],
                 [chmod +x helpers/authproto_pamtester])
 AC_CONFIG_FILES([helpers/saver_mplayer],
                 [chmod +x helpers/saver_mplayer])
-AC_CONFIG_FILES([helpers/saver_mpv],
-                [chmod +x helpers/saver_mpv])
 AC_CONFIG_FILES([helpers/saver_xscreensaver],
                 [chmod +x helpers/saver_xscreensaver])
 

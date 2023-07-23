@@ -91,10 +91,6 @@ if HAVE_MPLAYER
 helpers_SCRIPTS += \
 	helpers/saver_mplayer
 endif
-if HAVE_MPV
-helpers_SCRIPTS += \
-	helpers/saver_mpv
-endif
 if HAVE_PAMTESTER
 helpers_SCRIPTS += \
 	helpers/authproto_pamtester
