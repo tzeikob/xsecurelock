@@ -35,7 +35,6 @@ distribution of choice, but will be similar:
 *   libxss-dev
 *   make
 *   mplayer (for the `saver_mplayer` module)
-*   mpv (for the `saver_mpv` module)
 *   pamtester (for the `authproto_pamtester` module)
 *   pkg-config
 *   x11proto-core-dev

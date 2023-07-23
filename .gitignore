@@ -14,8 +14,6 @@
 /depcomp
 /helpers/authproto_htpasswd
 /helpers/authproto_pamtester
-/helpers/saver_mplayer
-/helpers/saver_mpv
 /helpers/saver_xscreensaver
 /install-sh
 /missing
