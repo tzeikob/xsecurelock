@@ -261,10 +261,6 @@ EXTRA_DIST = \
 	test/*.xdo \
 	version.c
 
-examplesdir = $(docdir)/examples
-dist_examples_DATA = \
-	doc/examples/saver_livestreams
-
 if HAVE_DOXYGEN
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile
