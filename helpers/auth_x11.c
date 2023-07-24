@@ -69,126 +69,14 @@ char *const *argv;
 //! The authproto helper to use.
 const char *authproto_executable;
 
-//! The blinking interval in microseconds.
-#define BLINK_INTERVAL (250 * 1000)
-
 //! The maximum time to wait at a prompt for user input in seconds.
 int prompt_timeout;
 
-//! Number of dancers in the disco password display
-#define DISCO_PASSWORD_DANCERS 5
-
-//! Length of the "paranoid password display".
-#define PARANOID_PASSWORD_LENGTH (1 << DISCO_PASSWORD_DANCERS)
-
-//! Minimum distance the cursor shall move on keypress.
-#define PARANOID_PASSWORD_MIN_CHANGE 4
-
-//! Border of the window around the text.
-#define WINDOW_BORDER 16
-
-//! Draw border rectangle (mainly for debugging).
-#undef DRAW_BORDER
-
 //! Extra line spacing.
-#define LINE_SPACING 4
+#define LINE_SPACING 5
 
-//! Actual password prompt selected
-enum PasswordPrompt {
-  PASSWORD_PROMPT_CURSOR,
-  PASSWORD_PROMPT_ASTERISKS,
-  PASSWORD_PROMPT_HIDDEN,
-  PASSWORD_PROMPT_DISCO,
-  PASSWORD_PROMPT_EMOJI,
-  PASSWORD_PROMPT_EMOTICON,
-  PASSWORD_PROMPT_KAOMOJI,
-#if __STDC_VERSION__ >= 199901L
-  PASSWORD_PROMPT_TIME,
-  PASSWORD_PROMPT_TIME_HEX,
-#endif
-
-  PASSWORD_PROMPT_COUNT,
-};
-const char *PasswordPromptStrings[] = {
-    /* PASSWORD_PROMPT_CURSOR= */ "cursor",
-    /* PASSWORD_PROMPT_ASTERISKS= */ "asterisks",
-    /* PASSWORD_PROMPT_HIDDEN= */ "hidden",
-    /* PASSWORD_PROMPT_DISCO= */ "disco",
-    /* PASSWORD_PROMPT_EMOJI= */ "emoji",
-    /* PASSWORD_PROMPT_EMOTICON= */ "emoticon",
-    /* PASSWORD_PROMPT_KAOMOJI= */ "kaomoji",
-#if __STDC_VERSION__ >= 199901L
-    /* PASSWORD_PROMPT_TIME= */ "time",
-    /* PASSWORD_PROMPT_TIME_HEX= */ "time_hex",
-#endif
-};
-
-enum PasswordPrompt password_prompt;
-
-// A disco password is composed of multiple disco_dancers (each selected at
-// random from the array), joined by the disco_combiner
-const char *disco_combiner = " ♪ ";
-// Note: the disco_dancers MUST all have the same length
-const char *disco_dancers[] = {
-    "┏(･o･)┛",
-    "┗(･o･)┓",
-};
-
-// Emoji to display in emoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. List taken from the top items in
-// http://emojitracker.com/ The first item is always display in an empty prompt
-// (before typing in the password)
-const char *emoji[] = {
-    "_____", "😂", "❤", "♻", "😍", "♥", "😭", "😊", "😒", "💕", "😘",
-    "😩",     "☺", "👌", "😔", "😁", "😏", "😉", "👍", "⬅", "😅", "🙏",
-    "😌",     "😢", "👀", "💔", "😎", "🎶", "💙", "💜", "🙌", "😳",
-};
-STATIC_ASSERT(sizeof(emoji) / sizeof(*emoji) == PARANOID_PASSWORD_LENGTH,
-              "Emoji array size must be equal to PARANOID_PASSWORD_LENGTH");
-
-// Emoticons to display in emoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. The first item is always display in an empty prompt
-// (before typing in the password)
-const char *emoticons[] = {
-    ":-)",  ":-p", ":-O", ":-\\", "(-:",  "d-:", "O-:", "/-:",
-    "8-)",  "8-p", "8-O", "8-\\", "(-8",  "d-8", "O-8", "/-8",
-    "X-)",  "X-p", "X-O", "X-\\", "(-X",  "d-X", "O-X", "/-X",
-    ":'-)", ":-S", ":-D", ":-#",  "(-':", "S-:", "D-:", "#-:",
-};
-STATIC_ASSERT(sizeof(emoticons) / sizeof(*emoticons) ==
-                  PARANOID_PASSWORD_LENGTH,
-              "Emoticons array size must be equal to PARANOID_PASSWORD_LENGTH");
-
-// Kaomoji to display in kaomoji mode. The length of the array must be equal to
-// PARANOID_PASSWORD_LENGTH. The first item is always display in an empty prompt
-// (before typing in the password)
-const char *kaomoji[] = {
-    "(͡°͜ʖ͡°)",     "(>_<)",       "O_ם",      "(^_-)",        "o_0",
-    "o.O",       "0_o",         "O.o",      "(°o°)",        "^m^",
-    "^_^",       "((d[-_-]b))", "┏(･o･)┛",  "┗(･o･)┓",      "（ﾟДﾟ)",
-    "(°◇°)",     "\\o/",        "\\o|",     "|o/",          "|o|",
-    "(●＾o＾●)", "(＾ｖ＾)",    "(＾ｕ＾)", "(＾◇＾)",      "¯\\_(ツ)_/¯",
-    "(^0_0^)",   "(☞ﾟ∀ﾟ)☞",     "(-■_■)",   "(┛ಠ_ಠ)┛彡┻━┻", "┬─┬ノ(º_ºノ)",
-    "(˘³˘)♥",    "❤(◍•ᴗ•◍)",
-};
-STATIC_ASSERT(sizeof(kaomoji) / sizeof(*kaomoji) == PARANOID_PASSWORD_LENGTH,
-              "Kaomoji array size must be equal to PARANOID_PASSWORD_LENGTH");
-
-//! If set, we can start a new login session.
-int have_switch_user_command;
-
-//! If set, the prompt will be fixed by <username>@.
-int show_username;
-
-//! If set, the prompt will be fixed by <hostname>. If >1, the hostname will be
-// shown in full and not cut at the first dot.
-int show_hostname;
-
-//! If set, data and time will be shown.
-int show_datetime;
-
-//! The date format to display.
-const char *datetime_format = "%c";
+//! The prompt input mode, hidden or asterisks
+const char *password_prompt;
 
 //! The local hostname.
 char hostname[256];
@@ -213,6 +101,7 @@ XFontStruct *core_font;
 XftColor xft_color_foreground;
 XftColor xft_color_warning;
 XftFont *xft_font;
+XftFont *xft_font_large;
 #endif
 
 //! The background color.
@@ -225,25 +114,10 @@ XColor xcolor_foreground;
 XColor xcolor_warning;
 
 //! The cursor character displayed at the end of the masked password input.
-static const char cursor[] = "_";
-
-//! The x offset to apply to the entire display (to mitigate burn-in).
-static int x_offset = 0;
-
-//! The y offset to apply to the entire display (to mitigate burn-in).
-static int y_offset = 0;
-
-//! Maximum offset value when dynamic changes are enabled.
-static int burnin_mitigation_max_offset = 0;
-
-//! How much the offsets are allowed to change dynamically, and if so, how high.
-static int burnin_mitigation_max_offset_change = 0;
+static const char cursor[] = "";
 
 //! Whether to play sounds during authentication.
 static int auth_sounds = 0;
-
-//! Whether to blink the cursor in the auth dialog.
-static int auth_cursor_blink = 1;
 
 //! Whether we only want a single auth window.
 static int single_auth_window = 0;
@@ -367,9 +241,7 @@ void SwitchKeyboardLayout(void) {
     return;
   }
 
-  XkbLockGroup(display, XkbUseCoreKbd,
-               (state.group + 1) % xkb->ctrls->num_groups);
-
+  XkbLockGroup(display, XkbUseCoreKbd, (state.group + 1) % xkb->ctrls->num_groups);
   XkbFreeKeyboard(xkb, 0, True);
 #endif
 }
@@ -438,7 +310,7 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
 
   p = buf;
 
-  const char *word = "Keyboard: ";
+  const char *word = "";
   size_t n = strlen(word);
   if (n >= sizeof(buf) - (p - buf)) {
     Log("Not enough space to store intro '%s'", word);
@@ -514,6 +386,10 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
       if (namea == None) {
         continue;
       }
+      char *name = XGetAtomName(display, namea);
+      if (strcmp(name, "Caps Lock") != 0) {
+        continue;
+      }
       if (have_output) {
         if (2 >= sizeof(buf) - (p - buf)) {
           Log("Not enough space to store another modifier name");
@@ -522,7 +398,6 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
         memcpy(p, ", ", 2);
         p += 2;
       }
-      char *name = XGetAtomName(display, namea);
       size_t n = strlen(name);
       if (n >= sizeof(buf) - (p - buf)) {
         Log("Not enough space to store modifier name '%s'", name);
@@ -563,14 +438,12 @@ void DestroyPerMonitorWindows(size_t keep_windows) {
   }
 }
 
-void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor,
-                                    int region_w, int region_h, int x_offset,
-                                    int y_offset) {
+void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region_w, int region_h) {
   // Desired box.
   int w = region_w;
   int h = region_h;
-  int x = monitor->x + (monitor->width - w) / 2 + x_offset;
-  int y = monitor->y + (monitor->height - h) / 2 + y_offset;
+  int x = monitor->x + (monitor->width - w) / 2;
+  int y = monitor->height - h;
   // Clip to monitor.
   if (x < 0) {
     w += x;
@@ -653,15 +526,7 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor,
   num_windows = i + 1;
 }
 
-void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
-                             int x_offset, int y_offset) {
-  static size_t num_monitors = 0;
-  static Monitor monitors[MAX_WINDOWS];
-
-  if (monitors_changed) {
-    num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
-  }
-
+void UpdatePerMonitorWindows(Monitor* monitors, size_t num_monitors, int region_w, int region_h) {
   if (single_auth_window) {
     Window unused_root, unused_child;
     int unused_root_x, unused_root_y, x, y;
@@ -671,14 +536,12 @@ void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
     for (size_t i = 0; i < num_monitors; ++i) {
       if (x >= monitors[i].x && x < monitors[i].x + monitors[i].width &&
           y >= monitors[i].y && y < monitors[i].y + monitors[i].height) {
-        CreateOrUpdatePerMonitorWindow(0, &monitors[i], region_w, region_h,
-                                       x_offset, y_offset);
+        CreateOrUpdatePerMonitorWindow(0, &monitors[i], region_w, region_h);
         return;
       }
     }
     if (num_monitors > 0) {
-      CreateOrUpdatePerMonitorWindow(0, &monitors[0], region_w, region_h,
-                                     x_offset, y_offset);
+      CreateOrUpdatePerMonitorWindow(0, &monitors[0], region_w, region_h);
       DestroyPerMonitorWindows(1);
     } else {
       DestroyPerMonitorWindows(0);
@@ -691,8 +554,7 @@ void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
 
   // Update or create everything.
   for (size_t i = 0; i < new_num_windows; ++i) {
-    CreateOrUpdatePerMonitorWindow(i, &monitors[i], region_w, region_h,
-                                   x_offset, y_offset);
+    CreateOrUpdatePerMonitorWindow(i, &monitors[i], region_w, region_h);
   }
 
   // Kill all the old stuff.
@@ -704,19 +566,19 @@ void UpdatePerMonitorWindows(int monitors_changed, int region_w, int region_h,
   }
 }
 
-int TextAscent(void) {
+int TextAscent(XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
-    return xft_font->ascent;
+  if (font != NULL) {
+    return font->ascent;
   }
 #endif
   return core_font->max_bounds.ascent;
 }
 
-int TextDescent(void) {
+int TextDescent(XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
-    return xft_font->descent;
+  if (font != NULL) {
+    return font->descent;
   }
 #endif
   return core_font->max_bounds.descent;
@@ -743,32 +605,29 @@ int XGlyphInfoExpandAmount(XGlyphInfo *extents) {
 }
 #endif
 
-int TextWidth(const char *string, int len) {
+int TextWidth(XftFont *font, const char *string, int len) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
+  if (font != NULL) {
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len,
-                       &extents);
+    XftTextExtentsUtf8(display, font, (const FcChar8 *)string, len, &extents);
     return extents.xOff + 2 * XGlyphInfoExpandAmount(&extents);
   }
 #endif
   return XTextWidth(core_font, string, len);
 }
 
-void DrawString(int monitor, int x, int y, int is_warning, const char *string,
-                int len) {
+void DrawString(int monitor, int x, int y, int is_warning, const char *string, int len, XftFont *font) {
 #ifdef HAVE_XFT_EXT
-  if (xft_font != NULL) {
+  if (font != NULL) {
     // HACK: Query text extents here to make the text fit into the specified
     // box. For y this is covered by the usual ascent/descent behavior - for x
     // we however do have to work around font descents being drawn to the left
     // of the cursor.
     XGlyphInfo extents;
-    XftTextExtentsUtf8(display, xft_font, (const FcChar8 *)string, len,
-                       &extents);
+    XftTextExtentsUtf8(display, font, (const FcChar8 *)string, len, &extents);
     XftDrawStringUtf8(xft_draws[monitor],
                       is_warning ? &xft_color_warning : &xft_color_foreground,
-                      xft_font, x + XGlyphInfoExpandAmount(&extents), y,
+                      font, x + XGlyphInfoExpandAmount(&extents), y,
                       (const FcChar8 *)string, len);
     return;
   }
@@ -778,8 +637,7 @@ void DrawString(int monitor, int x, int y, int is_warning, const char *string,
               len);
 }
 
-void StrAppend(char **output, size_t *output_size, const char *input,
-               size_t input_size) {
+void StrAppend(char **output, size_t *output_size, const char *input, size_t input_size) {
   if (*output_size <= input_size) {
     // Cut the input off. Sorry.
     input_size = *output_size - 1;
@@ -789,180 +647,71 @@ void StrAppend(char **output, size_t *output_size, const char *input,
   *output_size -= input_size;
 }
 
-void BuildTitle(char *output, size_t output_size, const char *input) {
-  if (show_username) {
-    size_t username_len = strlen(username);
-    StrAppend(&output, &output_size, username, username_len);
-  }
+void BuildLogin(char *output, size_t output_size) {
+  size_t username_len = strlen(username);
+  StrAppend(&output, &output_size, username, username_len);
+  StrAppend(&output, &output_size, "@", 1);
+  
+  size_t hostname_len = strcspn(hostname, ".");
+  StrAppend(&output, &output_size, hostname, hostname_len);
 
-  if (show_username && show_hostname) {
-    StrAppend(&output, &output_size, "@", 1);
-  }
-
-  if (show_hostname) {
-    size_t hostname_len =
-        show_hostname > 1 ? strlen(hostname) : strcspn(hostname, ".");
-    StrAppend(&output, &output_size, hostname, hostname_len);
-  }
-
-  if (*input == 0) {
-    *output = 0;
-    return;
-  }
-
-  if (show_username || show_hostname) {
-    StrAppend(&output, &output_size, " - ", 3);
-  }
-  strncpy(output, input, output_size - 1);
-  output[output_size - 1] = 0;
+  *output = 0;
 }
 
-/*! \brief Display a string in the window.
+/*! \brief Render the conext of the auth module.
  *
- * The given title and message will be displayed on all screens. In case caps
- * lock is enabled, the string's case will be inverted.
- *
- * \param title The title of the message.
- * \param str The message itself.
- * \param is_warning Whether to use the warning style to display the message.
+ * \param prompt A prompt text.
+ * \param message A long message.
+ * \param is_warning Whether to use the warning style.
  */
-void DisplayMessage(const char *title, const char *str, int is_warning) {
-  char full_title[256];
-  BuildTitle(full_title, sizeof(full_title), title);
+void RenderContext(const char *prompt, const char *message, int is_warning) {
+  int th = TextAscent(xft_font_large) + TextDescent(xft_font_large) + LINE_SPACING;
+  int to = TextAscent(xft_font_large) + LINE_SPACING / 2;  // Text at to fits into 0 to th.
 
-  int th = TextAscent() + TextDescent() + LINE_SPACING;
-  int to = TextAscent() + LINE_SPACING / 2;  // Text at to fits into 0 to th.
+  int len_prompt = strlen(prompt);
+  int tw_prompt = TextWidth(xft_font_large, prompt, len_prompt);
 
-  int len_full_title = strlen(full_title);
-  int tw_full_title = TextWidth(full_title, len_full_title);
+  int len_message = strlen(message);
+  int tw_message = TextWidth(xft_font_large, message, len_message);
 
-  int len_str = strlen(str);
-  int tw_str = TextWidth(str, len_str);
+  char login[256];
+  BuildLogin(login, sizeof(login));
+  int len_login = strlen(login);
 
   int indicators_warning = 0;
   int have_multiple_layouts = 0;
-  const char *indicators =
-      GetIndicators(&indicators_warning, &have_multiple_layouts);
+  const char *indicators = GetIndicators(&indicators_warning, &have_multiple_layouts);
   int len_indicators = strlen(indicators);
-  int tw_indicators = TextWidth(indicators, len_indicators);
+  int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
-  const char *switch_layout =
-      have_multiple_layouts ? "Press Ctrl-Tab to switch keyboard layout" : "";
-  int len_switch_layout = strlen(switch_layout);
-  int tw_switch_layout = TextWidth(switch_layout, len_switch_layout);
+  static size_t num_monitors = 0;
+  static Monitor monitors[MAX_WINDOWS];
 
-  const char *switch_user = have_switch_user_command
-                                ? "Press Ctrl-Alt-O or Win-O to switch user"
-                                : "";
-  int len_switch_user = strlen(switch_user);
-  int tw_switch_user = TextWidth(switch_user, len_switch_user);
+  num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
+  int region_w = monitors[0].width;
+  int region_h = monitors[0].height * 0.55;
 
-  char datetime[80] = "";
-  if (show_datetime) {
-    time_t rawtime;
-    struct tm timeinfo_buf;
-    struct tm *timeinfo;
-
-    time(&rawtime);
-    timeinfo = localtime_r(&rawtime, &timeinfo_buf);
-    if (timeinfo == NULL ||
-        strftime(datetime, sizeof(datetime), datetime_format, timeinfo) == 0) {
-      // The datetime buffer was too small to fit the time format, and in this
-      // case the buffer contents are undefined. Let's just make it a valid
-      // empty string then so all else will go well.
-      datetime[0] = 0;
-    }
-  }
-
-  int len_datetime = strlen(datetime);
-  int tw_datetime = TextWidth(datetime, len_datetime);
-
-  // Compute the region we will be using, relative to cx and cy.
-  int box_w = tw_full_title;
-  if (box_w < tw_datetime) {
-    box_w = tw_datetime;
-  }
-  if (box_w < tw_str) {
-    box_w = tw_str;
-  }
-  if (box_w < tw_indicators) {
-    box_w = tw_indicators;
-  }
-  if (box_w < tw_switch_layout) {
-    box_w = tw_switch_layout;
-  }
-  if (box_w < tw_switch_user) {
-    box_w = tw_switch_user;
-  }
-  int box_h = (4 + have_multiple_layouts + have_switch_user_command +
-               show_datetime * 2) *
-              th;
-  int region_w = box_w + 2 * WINDOW_BORDER;
-  int region_h = box_h + 2 * WINDOW_BORDER;
-
-  if (burnin_mitigation_max_offset_change > 0) {
-    x_offset += rand() % (2 * burnin_mitigation_max_offset_change + 1) -
-                burnin_mitigation_max_offset_change;
-    if (x_offset < -burnin_mitigation_max_offset) {
-      x_offset = -burnin_mitigation_max_offset;
-    }
-    if (x_offset > burnin_mitigation_max_offset) {
-      x_offset = burnin_mitigation_max_offset;
-    }
-    y_offset += rand() % (2 * burnin_mitigation_max_offset_change + 1) -
-                burnin_mitigation_max_offset_change;
-    if (y_offset < -burnin_mitigation_max_offset) {
-      y_offset = -burnin_mitigation_max_offset;
-    }
-    if (y_offset > burnin_mitigation_max_offset) {
-      y_offset = burnin_mitigation_max_offset;
-    }
-  }
-
-  UpdatePerMonitorWindows(per_monitor_windows_dirty, region_w, region_h,
-                          x_offset, y_offset);
+  UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
-    int cx = region_w / 2;
-    int cy = region_h / 2;
-    int y = cy + to - box_h / 2;
+    int x = region_w / 2;
+    int y = th + to;
 
     XClearWindow(display, windows[i]);
 
-#ifdef DRAW_BORDER
-    XDrawRectangle(display, windows[i], gcs[i],     //
-                   cx - box_w / 2, cy - box_h / 2,  //
-                   box_w - 1, box_h - 1);
-#endif
-
-    if (show_datetime) {
-      DrawString(i, cx - tw_datetime / 2, y, 0, datetime, len_datetime);
-      y += th * 2;
+    if (strlen(message) > 0) {
+      DrawString(i, x - tw_message / 2, y, is_warning, message, len_message, xft_font_large);
+    } else {
+      DrawString(i, x - tw_prompt / 2, y, is_warning, prompt, len_prompt, xft_font_large);
     }
 
-    DrawString(i, cx - tw_full_title / 2, y, is_warning, full_title,
-               len_full_title);
-    y += th * 2;
+    x = 5;
+    y = region_h - 5;
+    DrawString(i, x, y, 0, login, len_login, xft_font);
 
-    DrawString(i, cx - tw_str / 2, y, is_warning, str, len_str);
-    y += th;
-
-    DrawString(i, cx - tw_indicators / 2, y, indicators_warning, indicators,
-               len_indicators);
-    y += th;
-
-    if (have_multiple_layouts) {
-      DrawString(i, cx - tw_switch_layout / 2, y, 0, switch_layout,
-                 len_switch_layout);
-      y += th;
-    }
-
-    if (have_switch_user_command) {
-      DrawString(i, cx - tw_switch_user / 2, y, 0, switch_user,
-                 len_switch_user);
-      // y += th;
-    }
+    x = region_w - tw_indicators - 5;
+    DrawString(i, x, y, indicators_warning, indicators, len_indicators, xft_font);
   }
 
   // Make the things just drawn appear on the screen as soon as possible.
@@ -981,54 +730,11 @@ void WaitForKeypress(int seconds) {
   select(1, &set, NULL, NULL, &timeout);
 }
 
-/*! \brief Bump the position for the password "cursor".
- *
- * If pwlen > 0:
- * Precondition: pos in 0..PARANOID_PASSWORD_LENGTH-1.
- * Postcondition: pos' in 1..PARANOID_PASSWORD_LENGTH-1.
- * Postcondition: abs(pos' - pos) >= PARANOID_PASSWORD_MIN_CHANGE.
- * Postcondition: pos' is uniformly distributed among all permitted choices.
- * If pwlen == 0:
- * Postcondition: pos' is 0.
- *
- * \param pwlen The current password length.
- * \param pos The initial cursor position; will get updated.
- * \param last_keystroke The time of last keystroke; will get updated.
- */
-void BumpDisplayMarker(size_t pwlen, size_t *pos,
-                       struct timeval *last_keystroke) {
-  gettimeofday(last_keystroke, NULL);
-
-  // Empty password: always put at 0.
-  if (pwlen == 0) {
-    *pos = 0;
-    return;
-  }
-
-  // Otherwise: put in the range and fulfill the constraints.
-  for (;;) {
-    size_t new_pos = 1 + rand() % (PARANOID_PASSWORD_LENGTH - 1);
-    if (labs((ssize_t)new_pos - (ssize_t)*pos) >=
-        PARANOID_PASSWORD_MIN_CHANGE) {
-      *pos = new_pos;
-      break;
-    }
-  }
-}
-
 //! The size of the buffer to store the password in. Not NUL terminated.
 #define PWBUF_SIZE 256
 
 //! The size of the buffer to use for display, with space for cursor and NUL.
 #define DISPLAYBUF_SIZE (PWBUF_SIZE + 2)
-
-void ShowFromArray(const char **array, size_t displaymarker, char *displaybuf,
-                   size_t displaybufsize, size_t *displaylen) {
-  const char *selection = array[displaymarker];
-  strncpy(displaybuf, selection, displaybufsize);
-  displaybuf[displaybufsize - 1] = 0;
-  *displaylen = strlen(selection);
-}
 
 /*! \brief Ask a question to the user.
  *
@@ -1039,7 +745,7 @@ void ShowFromArray(const char **array, size_t displaymarker, char *displaybuf,
  *   (password entry).
  * \return 1 if successful, anything else otherwise.
  */
-int Prompt(const char *msg, char **response, int echo) {
+int Prompt(char *msg, char **response, int echo) {
   // Ask something. Return strdup'd string.
   struct {
     // The received X11 event.
@@ -1056,10 +762,6 @@ int Prompt(const char *msg, char **response, int echo) {
     // Display buffer length.
     size_t displaylen;
 
-    // The display marker changes on every input action to a value from 0 to
-    // PARANOID_PASSWORD-1. It indicates where to display the "cursor".
-    size_t displaymarker;
-
     // Character read buffer.
     char inputbuf;
 
@@ -1072,18 +774,16 @@ int Prompt(const char *msg, char **response, int echo) {
     size_t pos;
     int len;
   } priv;
-  int blink_state = 0;
 
   if (!echo && MLOCK_PAGE(&priv, sizeof(priv)) < 0) {
     LogErrno("mlock");
     // We continue anyway, as the user being unable to unlock the screen is
     // worse. But let's alert the user.
-    DisplayMessage("Error", "Password will not be stored securely.", 1);
+    RenderContext("", "Password will not be stored securely.", 1);
     WaitForKeypress(1);
   }
 
   priv.pwlen = 0;
-  priv.displaymarker = 0;
 
   time_t deadline = time(NULL) + prompt_timeout;
 
@@ -1102,127 +802,43 @@ int Prompt(const char *msg, char **response, int echo) {
       priv.displaylen = priv.pwlen;
       // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
       // priv.pwlen + 2 <= sizeof(priv.displaybuf).
-      priv.displaybuf[priv.displaylen] = blink_state ? ' ' : *cursor;
+      priv.displaybuf[priv.displaylen] = *cursor;
       priv.displaybuf[priv.displaylen + 1] = '\0';
     } else {
-      switch (password_prompt) {
-        case PASSWORD_PROMPT_ASTERISKS: {
-          mblen(NULL, 0);
-          priv.pos = priv.displaylen = 0;
-          while (priv.pos < priv.pwlen) {
-            ++priv.displaylen;
-            // Note: this won't read past priv.pwlen.
-            priv.len = mblen(priv.pwbuf + priv.pos, priv.pwlen - priv.pos);
-            if (priv.len <= 0) {
-              // This guarantees to "eat" one byte each step. Therefore,
-              // priv.displaylen <= priv.pwlen is ensured.
-              break;
-            }
-            priv.pos += priv.len;
+      if (strcmp(password_prompt, "hidden") == 0) {
+        priv.displaylen = 0;
+        priv.displaybuf[0] = '\0';
+      } else {
+        mblen(NULL, 0);
+        priv.pos = priv.displaylen = 0;
+        while (priv.pos < priv.pwlen) {
+          ++priv.displaylen;
+          // Note: this won't read past priv.pwlen.
+          priv.len = mblen(priv.pwbuf + priv.pos, priv.pwlen - priv.pos);
+          if (priv.len <= 0) {
+            // This guarantees to "eat" one byte each step. Therefore,
+            // priv.displaylen <= priv.pwlen is ensured.
+            break;
           }
-          memset(priv.displaybuf, '*', priv.displaylen);
-          // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
-          // priv.pwlen + 2 <= sizeof(priv.displaybuf).
-          priv.displaybuf[priv.displaylen] = blink_state ? ' ' : *cursor;
-          priv.displaybuf[priv.displaylen + 1] = '\0';
-          break;
+          priv.pos += priv.len;
         }
-
-        case PASSWORD_PROMPT_HIDDEN: {
-          priv.displaylen = 0;
-          priv.displaybuf[0] = '\0';
-          break;
-        }
-
-        case PASSWORD_PROMPT_DISCO: {
-          size_t combiner_length = strlen(disco_combiner);
-          size_t dancer_length = strlen(disco_dancers[0]);
-          size_t stride = combiner_length + dancer_length;
-          priv.displaylen =
-              stride * DISCO_PASSWORD_DANCERS * strlen(disco_dancers[0]) +
-              strlen(disco_combiner);
-
-          for (size_t i = 0, bit = 1; i < DISCO_PASSWORD_DANCERS;
-               ++i, bit <<= 1) {
-            const char *dancer =
-                disco_dancers[(priv.displaymarker & bit) ? 1 : 0];
-            memcpy(priv.displaybuf + i * stride, disco_combiner,
-                   combiner_length);
-            memcpy(priv.displaybuf + i * stride + combiner_length, dancer,
-                   dancer_length);
-          }
-          memcpy(priv.displaybuf + DISCO_PASSWORD_DANCERS * stride,
-                 disco_combiner, combiner_length);
-          priv.displaybuf[priv.displaylen] = '\0';
-          break;
-        }
-
-        case PASSWORD_PROMPT_EMOJI: {
-          ShowFromArray(emoji, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-        case PASSWORD_PROMPT_EMOTICON: {
-          ShowFromArray(emoticons, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-        case PASSWORD_PROMPT_KAOMOJI: {
-          ShowFromArray(kaomoji, priv.displaymarker, priv.displaybuf,
-                        sizeof(priv.displaybuf), &priv.displaylen);
-          break;
-        }
-
-#if __STDC_VERSION__ >= 199901L
-        case PASSWORD_PROMPT_TIME:
-        case PASSWORD_PROMPT_TIME_HEX: {
-          if (priv.pwlen == 0) {
-            strncpy(priv.displaybuf, "----", DISPLAYBUF_SIZE - 1);
-            priv.displaybuf[DISPLAYBUF_SIZE - 1] = 0;
-          } else {
-            if (password_prompt == PASSWORD_PROMPT_TIME) {
-              snprintf(priv.displaybuf, DISPLAYBUF_SIZE,
-                       "%" PRId64 ".%06" PRId64,
-                       (int64_t)priv.last_keystroke.tv_sec,
-                       (int64_t)priv.last_keystroke.tv_usec);
-            } else {
-              snprintf(priv.displaybuf, DISPLAYBUF_SIZE, "%#" PRIx64,
-                       (int64_t)priv.last_keystroke.tv_sec * 1000000 +
-                           (int64_t)priv.last_keystroke.tv_usec);
-            }
-            priv.displaybuf[DISPLAYBUF_SIZE - 1] = 0;
-          }
-          break;
-        }
-#endif
-
-        default:
-        case PASSWORD_PROMPT_CURSOR: {
-          priv.displaylen = PARANOID_PASSWORD_LENGTH;
-          memset(priv.displaybuf, '_', priv.displaylen);
-          priv.displaybuf[priv.displaymarker] = blink_state ? '-' : '|';
-          priv.displaybuf[priv.displaylen] = '\0';
-          break;
-        }
+        memset(priv.displaybuf, '*', priv.displaylen);
+        // Note that priv.pwlen <= sizeof(priv.pwbuf) and thus
+        // priv.pwlen + 2 <= sizeof(priv.displaybuf).
+        priv.displaybuf[priv.displaylen] = *cursor;
+        priv.displaybuf[priv.displaylen + 1] = '\0';
       }
     }
-    DisplayMessage(msg, priv.displaybuf, 0);
+    RenderContext(msg, priv.displaybuf, 0);
 
     if (!played_sound) {
       PlaySound(SOUND_PROMPT);
       played_sound = 1;
     }
 
-    // Blink the cursor.
-    if (auth_cursor_blink) {
-      blink_state = !blink_state;
-    }
-
     struct timeval timeout;
-    timeout.tv_sec = BLINK_INTERVAL / 1000000;
-    timeout.tv_usec = BLINK_INTERVAL % 1000000;
+    timeout.tv_sec = (250 * 1000) / 1000000;
+    timeout.tv_usec = (250 * 1000) % 1000000;
 
     while (!done) {
       fd_set set;
@@ -1253,9 +869,6 @@ int Prompt(const char *msg, char **response, int echo) {
       // From now on, only do nonblocking selects so we update the screen ASAP.
       timeout.tv_usec = 0;
 
-      // Force the cursor to be in visible state while typing.
-      blink_state = 0;
-
       // Reset the prompt timeout.
       deadline = now + prompt_timeout;
 
@@ -1283,8 +896,6 @@ int Prompt(const char *msg, char **response, int echo) {
             priv.pos += priv.len;
           }
           priv.pwlen = priv.prevpos;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         }
         case '\001':  // Ctrl-A.
@@ -1292,8 +903,6 @@ int Prompt(const char *msg, char **response, int echo) {
           // requested. In most toolkits, Ctrl-A does not immediately erase but
           // almost every keypress other than arrow keys will erase afterwards.
           priv.pwlen = 0;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         case '\023':  // Ctrl-S.
           SwitchKeyboardLayout();
@@ -1303,8 +912,6 @@ int Prompt(const char *msg, char **response, int echo) {
           // i3lock: supports Ctrl-U but not Ctrl-A.
           // xscreensaver: supports Ctrl-U and Ctrl-X but not Ctrl-A.
           priv.pwlen = 0;
-          BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                            &priv.last_keystroke);
           break;
         case 0:       // Shouldn't happen.
         case '\033':  // Escape.
@@ -1317,8 +924,7 @@ int Prompt(const char *msg, char **response, int echo) {
             LogErrno("mlock");
             // We continue anyway, as the user being unable to unlock the screen
             // is worse. But let's alert the user of this.
-            DisplayMessage("Error", "Password has not been stored securely.",
-                           1);
+            RenderContext("", "Password has not been stored securely.", 1);
             WaitForKeypress(1);
           }
           if (priv.pwlen != 0) {
@@ -1338,8 +944,6 @@ int Prompt(const char *msg, char **response, int echo) {
           if (priv.pwlen < sizeof(priv.pwbuf)) {
             priv.pwbuf[priv.pwlen] = priv.inputbuf;
             ++priv.pwlen;
-            BumpDisplayMarker(priv.pwlen, &priv.displaymarker,
-                              &priv.last_keystroke);
           } else {
             Log("Password entered is too long - bailing out");
             done = 1;
@@ -1450,33 +1054,22 @@ int Authenticate() {
     char type = ReadPacket(requestfd[0], &message, 1);
     switch (type) {
       case PTYPE_INFO_MESSAGE:
-        DisplayMessage("PAM says", message, 0);
+        RenderContext("", message, 0);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_INFO);
         WaitForKeypress(1);
         break;
       case PTYPE_ERROR_MESSAGE:
-        DisplayMessage("Error", message, 1);
+        RenderContext("", message, 1);
         explicit_bzero(message, strlen(message));
         free(message);
         PlaySound(SOUND_ERROR);
         WaitForKeypress(1);
         break;
-      case PTYPE_PROMPT_LIKE_USERNAME:
-        if (Prompt(message, &response, 1)) {
-          WritePacket(responsefd[1], PTYPE_RESPONSE_LIKE_USERNAME, response);
-          explicit_bzero(response, strlen(response));
-          free(response);
-        } else {
-          WritePacket(responsefd[1], PTYPE_RESPONSE_CANCELLED, "");
-        }
-        explicit_bzero(message, strlen(message));
-        free(message);
-        DisplayMessage("Processing...", "", 0);
-        break;
       case PTYPE_PROMPT_LIKE_PASSWORD:
         if (Prompt(message, &response, 0)) {
+          RenderContext("Processing...", "", 0);
           WritePacket(responsefd[1], PTYPE_RESPONSE_LIKE_PASSWORD, response);
           explicit_bzero(response, strlen(response));
           free(response);
@@ -1485,7 +1078,6 @@ int Authenticate() {
         }
         explicit_bzero(message, strlen(message));
         free(message);
-        DisplayMessage("Processing...", "", 0);
         break;
       case 0:
         goto done;
@@ -1510,28 +1102,36 @@ done:
   return status != 0;
 }
 
-enum PasswordPrompt GetPasswordPromptFromFlags(
-    int paranoid_password_flag, const char *password_prompt_flag) {
-  if (!*password_prompt_flag) {
-    return paranoid_password_flag ? PASSWORD_PROMPT_CURSOR
-                                  : PASSWORD_PROMPT_ASTERISKS;
+#ifdef HAVE_XFT_EXT
+XftFont *FixedXftFontOpenName(Display *display, int screen, const char *font_name) {
+  XftFont *xft_font = XftFontOpenName(display, screen, font_name);
+#ifdef HAVE_FONTCONFIG
+  // Workaround for Xft crashing the process when trying to render a colored
+  // font. See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=916349 and
+  // https://gitlab.freedesktop.org/xorg/lib/libxft/issues/6 among others. In
+  // the long run this should be ported to a different font rendering library
+  // than Xft.
+  FcBool iscol;
+  if (xft_font != NULL &&
+      FcPatternGetBool(xft_font->pattern, FC_COLOR, 0, &iscol) && iscol) {
+    Log("Colored font %s is not supported by Xft", font_name);
+    XftFontClose(display, xft_font);
+    return NULL;
   }
-
-  for (enum PasswordPrompt prompt = 0; prompt < PASSWORD_PROMPT_COUNT;
-       ++prompt) {
-    if (strcmp(password_prompt_flag, PasswordPromptStrings[prompt]) == 0) {
-      return prompt;
-    }
-  }
-
-  Log("Invalid XSECURELOCK_PASSWORD_PROMPT value; defaulting to cursor");
-  return PASSWORD_PROMPT_CURSOR;
+#else
+#warning "Xft enabled without fontconfig. May crash trying to use emoji fonts."
+  Log("Xft enabled without fontconfig. May crash trying to use emoji fonts.");
+#endif
+  return xft_font;
 }
+#endif
 
 #ifdef HAVE_XFT_EXT
-XftFont *FixedXftFontOpenName(Display *display, int screen,
-                              const char *font_name) {
-  XftFont *xft_font = XftFontOpenName(display, screen, font_name);
+XftFont *FixedXftFontOpen(Display *display, int screen, const char *font_name) {
+  XftFont *xft_font = XftFontOpen (display, screen,
+                                 XFT_FAMILY, XftTypeString, font_name,
+                                 XFT_SIZE, XftTypeDouble, 22.0,
+                                 NULL);
 #ifdef HAVE_FONTCONFIG
   // Workaround for Xft crashing the process when trying to render a colored
   // font. See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=916349 and
@@ -1566,63 +1166,16 @@ int main(int argc_local, char **argv_local) {
   setlocale(LC_CTYPE, "");
   setlocale(LC_TIME, "");
 
-  // This is used by displaymarker only; there is slight security relevance here
-  // as an attacker who has a screenshot and an exact startup time and PID can
-  // guess the password length. Of course, an attacker who records the screen
-  // as a video, or points a camera or a microphone at the keyboard, can too.
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  srand(tv.tv_sec ^ tv.tv_usec ^ getpid());
-
-  authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO",
-                                                  AUTHPROTO_EXECUTABLE, 0);
-
-  // Unless disabled, we shift the login prompt randomly around by a few
-  // pixels. This should mostly mitigate burn-in effects from the prompt
-  // being displayed all the time, e.g. because the user's mouse is "shivering"
-  // and thus the auth prompt reappears soon after timeout.
-  burnin_mitigation_max_offset =
-      GetIntSetting("XSECURELOCK_BURNIN_MITIGATION", 16);
-  if (burnin_mitigation_max_offset > 0) {
-    x_offset = rand() % (2 * burnin_mitigation_max_offset + 1) -
-               burnin_mitigation_max_offset;
-    y_offset = rand() % (2 * burnin_mitigation_max_offset + 1) -
-               burnin_mitigation_max_offset;
-  }
-
-  //! Deprecated flag for setting whether password display should hide the
-  //! length.
-  int paranoid_password_flag;
-  //! Updated flag for password display choice
-  const char *password_prompt_flag;
-
-  // If requested, mitigate burn-in even more by moving the auth prompt while
-  // displayed. I bet many will find this annoying though.
-  burnin_mitigation_max_offset_change =
-      GetIntSetting("XSECURELOCK_BURNIN_MITIGATION_DYNAMIC", 0);
-
-  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 5 * 60);
-  show_username = GetIntSetting("XSECURELOCK_SHOW_USERNAME", 1);
-  show_hostname = GetIntSetting("XSECURELOCK_SHOW_HOSTNAME", 1);
-  paranoid_password_flag = GetIntSetting(
-      "XSECURELOCK_" /* REMOVE IN v2 */ "PARANOID_PASSWORD", 1);
-  password_prompt_flag = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "");
-  show_datetime = GetIntSetting("XSECURELOCK_SHOW_DATETIME", 0);
-  datetime_format = GetStringSetting("XSECURELOCK_DATETIME_FORMAT", "%c");
-  have_switch_user_command =
-      !!*GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
+  authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
+  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 60);
+  password_prompt = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "asterisks");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
   single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
-  auth_cursor_blink = GetIntSetting("XSECURELOCK_AUTH_CURSOR_BLINK", 1);
-#ifdef HAVE_XKB_EXT
-  show_keyboard_layout =
-      GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
-  show_locks_and_latches =
-      GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
-#endif
 
-  password_prompt =
-      GetPasswordPromptFromFlags(paranoid_password_flag, password_prompt_flag);
+#ifdef HAVE_XKB_EXT
+  show_keyboard_layout = GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
+  show_locks_and_latches = GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
+#endif
 
   if ((display = XOpenDisplay(NULL)) == NULL) {
     Log("Could not connect to $DISPLAY");
@@ -1674,6 +1227,7 @@ int main(int argc_local, char **argv_local) {
   core_font = NULL;
 #ifdef HAVE_XFT_EXT
   xft_font = NULL;
+  xft_font_large = NULL;
 #endif
 
   const char *font_name = GetStringSetting("XSECURELOCK_FONT", "");
@@ -1687,8 +1241,8 @@ int main(int argc_local, char **argv_local) {
     have_font = (core_font != NULL);
 #ifdef HAVE_XFT_EXT
     if (!have_font) {
-      xft_font =
-          FixedXftFontOpenName(display, DefaultScreen(display), font_name);
+      xft_font = FixedXftFontOpenName(display, DefaultScreen(display), font_name);
+      xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), font_name);
       have_font = (xft_font != NULL);
     }
 #endif
@@ -1699,8 +1253,8 @@ int main(int argc_local, char **argv_local) {
           font_name);
     }
 #ifdef HAVE_XFT_EXT
-    xft_font =
-        FixedXftFontOpenName(display, DefaultScreen(display), "monospace");
+    xft_font = FixedXftFontOpenName(display, DefaultScreen(display), "monospace");
+    xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), "monospace");
     have_font = (xft_font != NULL);
 #endif
   }
@@ -1753,6 +1307,7 @@ int main(int argc_local, char **argv_local) {
                  DefaultColormap(display, DefaultScreen(display)),
                  &xft_color_foreground);
     XftFontClose(display, xft_font);
+    XftFontClose(display, xft_font_large);
   }
 #endif
 

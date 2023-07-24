@@ -28,7 +28,6 @@
 
 # Binaries.
 /auth_x11
-/auth_stack
 /authproto_pam
 /dimmer
 /pgrp_placeholder

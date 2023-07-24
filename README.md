@@ -57,7 +57,7 @@ of the screen.
 git clone https://github.com/google/xsecurelock.git
 cd xsecurelock
 sh autogen.sh
-./configure --with-pam-service-name=system-auth --with-default-auth-module=auth_stack
+./configure --with-pam-service-name=system-auth
 make
 sudo make install
 ```
@@ -404,7 +404,6 @@ The following authentication modules are included:
 
 *   `auth_x11`: Authenticates via an authproto module using keyboard input (X11
     based; recommended).
-*   `auth_stack`: A minimalistic version of the `auth_x11` module.
 
 ## Writing Your Own Module
 
