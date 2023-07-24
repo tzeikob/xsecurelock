@@ -235,7 +235,7 @@ AC_ARG_WITH([default_authproto_module],
                             [
                              authproto_executable=
                              AS_IF([test x$have_pam = xtrue],
-                                   [authproto_executable=authproto_pam])
+                                   [authproto_executable=authproto_pypam])
                              AS_IF([test -z "$authproto_executable"],
                                    [AC_MSG_ERROR([No authproto executable found.])])
                             ])
