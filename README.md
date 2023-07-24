@@ -39,6 +39,7 @@ distribution of choice, but will be similar:
 *   pkg-config
 *   x11proto-core-dev
 *   xscreensaver (for the `saver_xscreensaver` module)
+*   python-pam (python module for the `authproto_pypam` module)
 
 # Installation
 
