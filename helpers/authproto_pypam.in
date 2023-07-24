@@ -27,7 +27,7 @@ try:
       print(f"i {len(succeed_message)}")
       print(succeed_message)
     else:
-      failed_message='Sorry, incorrect password!'
+      failed_message='Ooops, authentication has failed!'
       print(f"e {len(failed_message)}")
       print(failed_message)
     
