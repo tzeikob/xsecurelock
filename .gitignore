@@ -12,6 +12,7 @@
 /config.status
 /configure
 /depcomp
+/helpers/saver_clock
 /helpers/saver_xscreensaver
 /install-sh
 /missing

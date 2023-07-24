@@ -275,6 +275,8 @@ AM_CONDITIONAL([HAVE_IDLE_TIMER],
                [test x$have_xss = xtrue -o x$have_xsync = xtrue])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([helpers/saver_clock],
+                [chmod +x helpers/saver_clock])
 AC_CONFIG_FILES([helpers/saver_xscreensaver],
                 [chmod +x helpers/saver_xscreensaver])
 

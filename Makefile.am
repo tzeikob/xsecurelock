@@ -82,7 +82,8 @@ xsecurelock_LDADD = $(LIBBSD_LIBS)
 
 helpersdir = $(pkglibexecdir)
 helpers_SCRIPTS = \
-	helpers/saver_blank
+	helpers/saver_blank \
+	helpers/saver_clock
 if HAVE_XSCREENSAVER
 helpers_SCRIPTS += \
 	helpers/saver_xscreensaver
@@ -207,6 +208,7 @@ EXTRA_DIST = \
 	doc/xsecurelock.1.md \
 	ensure-documented-settings.sh \
 	helpers/saver_blank \
+	helpers/saver_clock \
 	incompatible_compositor.xbm.sh \
 	run-iwyu.sh \
 	run-linters.sh \
