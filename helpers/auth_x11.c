@@ -443,19 +443,23 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region
   int w = region_w;
   int h = region_h;
   int x = monitor->x + (monitor->width - w) / 2;
-  int y = monitor->height - h;
+  int y = monitor->y + monitor->height - h;
+
   // Clip to monitor.
   if (x < 0) {
     w += x;
     x = 0;
   }
+
   if (y < 0) {
     h += y;
     y = 0;
   }
+
   if (x + w > monitor->x + monitor->width) {
     w = monitor->x + monitor->width - x;
   }
+
   if (y + h > monitor->y + monitor->height) {
     h = monitor->y + monitor->height - y;
   }
