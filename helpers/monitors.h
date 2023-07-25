@@ -23,6 +23,8 @@ limitations under the License.
 
 typedef struct {
   int x, y, width, height;
+  int mwidth, mheight;
+  double ppi;
 } Monitor;
 
 /*! \brief Queries the current monitor configuration.

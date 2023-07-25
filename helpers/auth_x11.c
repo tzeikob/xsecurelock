@@ -693,14 +693,14 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
 
   num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
   int region_w = monitors[0].width;
-  int region_h = monitors[0].height * 0.55;
+  int region_h = monitors[0].height * 0.55 * (monitors[0].ppi/100);
 
   UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
   per_monitor_windows_dirty = 0;
 
   for (size_t i = 0; i < num_windows; ++i) {
     int x = region_w / 2;
-    int y = th + to;
+    int y = (th + to) * (monitors[0].ppi/100);
 
     XClearWindow(display, windows[i]);
 

@@ -19,6 +19,7 @@ limitations under the License.
 #include <X11/Xlib.h>  // for XWindowAttributes, Display, XGetW...
 #include <stdlib.h>    // for qsort
 #include <string.h>    // for memcmp, memset
+#include <math.h>      // for math functions
 
 #ifdef HAVE_XRANDR_EXT
 #include <X11/extensions/Xrandr.h>  // for XRRMonitorInfo, XRRCrtcInfo, XRRO...
@@ -91,10 +92,20 @@ static int IntervalsOverlap(int astart, int asize, int bstart, int bsize) {
   return 1;
 }
 
+static double ComputePpi(int w, int h, int mw, int mh) {
+  double diagonal_px = sqrt(pow(w, 2) + pow(h, 2));
+
+  double iw = mw/10/2.54;
+  double ih = mh/10/2.54;
+  double diagonal_in = sqrt(pow(iw, 2) + pow(ih, 2));
+
+  return diagonal_px / diagonal_in;
+}
+
 static void AddMonitor(Monitor* out_monitors, size_t* num_monitors,
-                       size_t max_monitors, int x, int y, int w, int h) {
+                       size_t max_monitors, int x, int y, int w, int h, int mw, int mh, double ppi) {
 #ifdef DEBUG_EVENTS
-  Log("AddMonitor %d %d %d %d", x, y, w, h);
+  Log("AddMonitor %d %d %d %d %d %d %f", x, y, w, h, mw, mh, ppi);
 #endif
   // Too many monitors? Stop collecting them.
   if (*num_monitors >= max_monitors) {
@@ -121,12 +132,15 @@ static void AddMonitor(Monitor* out_monitors, size_t* num_monitors,
     }
   }
 #ifdef DEBUG_EVENTS
-  Log("Monitor %d = %d %d %d %d", (int)*num_monitors, x, y, w, h);
+  Log("Monitor %d = %d %d %d %d %d %d %f", (int)*num_monitors, x, y, w, h, mw, mh, ppi);
 #endif
   out_monitors[*num_monitors].x = x;
   out_monitors[*num_monitors].y = y;
   out_monitors[*num_monitors].width = w;
   out_monitors[*num_monitors].height = h;
+  out_monitors[*num_monitors].mwidth = mw;
+  out_monitors[*num_monitors].mheight = mh;
+  out_monitors[*num_monitors].ppi = ppi;
   ++*num_monitors;
 }
 
@@ -158,7 +172,8 @@ static int GetMonitorsXRandR12(Display* dpy, Window window, int wx, int wy,
         int y = CLAMP(info->y, wy, wy + wh) - wy;
         int w = CLAMP(info->x + (int)info->width, wx + x, wx + ww) - (wx + x);
         int h = CLAMP(info->y + (int)info->height, wy + y, wy + wh) - (wy + y);
-        AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h);
+
+        AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, 0, 0, 100);
         XRRFreeCrtcInfo(info);
       }
     }
@@ -188,8 +203,11 @@ static int GetMonitorsXRandR15(Display* dpy, Window window, int wx, int wy,
       int y = CLAMP(info->y, wy, wy + wh) - wy;
       int w = CLAMP(info->x + info->width, wx + x, wx + ww) - (wx + x);
       int h = CLAMP(info->y + info->height, wy + y, wy + wh) - (wy + y);
+      int mw = (int) info->mwidth;
+      int mh = (int) info->mheight;
+      double ppi = ComputePpi(info->width, info->height, info->mwidth, info->mheight);
 
-      AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h);
+      AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, mw, mh, ppi);
     }
   }
   
@@ -241,7 +259,7 @@ static void GetMonitorsGuess(const XWindowAttributes* xwa,
     int w = (xwa->width * (i + 1) / guessed_monitors) -
             (xwa->width * i / guessed_monitors);
     int h = xwa->height;
-    AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h);
+    AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, 0, 0, 100);
   }
 }
 
