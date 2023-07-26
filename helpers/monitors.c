@@ -99,6 +99,10 @@ static double ComputePpi(int w, int h, int mw, int mh) {
   double ih = mh/10/2.54;
   double diagonal_in = sqrt(pow(iw, 2) + pow(ih, 2));
 
+  if (diagonal_px == 0 || diagonal_in == 0) {
+    return 0;
+  }
+
   return diagonal_px / diagonal_in;
 }
 
