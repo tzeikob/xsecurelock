@@ -72,9 +72,6 @@ const char *authproto_executable;
 //! The maximum time to wait at a prompt for user input in seconds.
 int prompt_timeout;
 
-//! Extra line spacing.
-#define LINE_SPACING 5
-
 //! The prompt input mode, hidden or asterisks
 const char *password_prompt;
 
@@ -669,9 +666,6 @@ void BuildLogin(char *output, size_t output_size) {
  * \param is_warning Whether to use the warning style.
  */
 void RenderContext(const char *prompt, const char *message, int is_warning) {
-  int th = TextAscent(xft_font_large) + TextDescent(xft_font_large) + LINE_SPACING;
-  int to = TextAscent(xft_font_large) + LINE_SPACING / 2;  // Text at to fits into 0 to th.
-
   int len_prompt = strlen(prompt);
   int tw_prompt = TextWidth(xft_font_large, prompt, len_prompt);
 
@@ -700,7 +694,10 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
 
   for (size_t i = 0; i < num_windows; ++i) {
     int x = region_w / 2;
-    int y = (th + to) * (monitors[0].ppi/100);
+
+    int ascent = TextAscent(xft_font_large);
+    int descent = TextDescent(xft_font_large);
+    int y = (ascent + descent + 20) * (monitors[0].ppi/100);
 
     XClearWindow(display, windows[i]);
 
