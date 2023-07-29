@@ -25,6 +25,7 @@ typedef struct {
   int x, y, width, height;
   int mwidth, mheight;
   double ppi;
+  int is_primary;
 } Monitor;
 
 /*! \brief Queries the current monitor configuration.
@@ -40,8 +41,7 @@ typedef struct {
  * \param max_monitors The size of the array.
  * \return The number of monitors returned in the array.
  */
-size_t GetMonitors(Display* dpy, Window window, Monitor* out_monitors,
-                   size_t max_monitors);
+size_t GetMonitors(Display* dpy, Window window, Monitor* out_monitors, size_t max_monitors);
 
 /*! \brief Enable receiving monitor change events for the given display at w.
  */

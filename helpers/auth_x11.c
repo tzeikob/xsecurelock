@@ -90,6 +90,9 @@ Window main_window;
 //! main_window's parent. Used to create per-monitor siblings.
 Window parent_window;
 
+//! the main or primary monitor to render the ui
+static Monitor *main_monitor;
+
 //! The X11 core font for the PAM messages.
 XFontStruct *core_font;
 
@@ -115,12 +118,6 @@ static const char cursor[] = "";
 
 //! Whether to play sounds during authentication.
 static int auth_sounds = 0;
-
-//! Whether we only want a single auth window.
-static int single_auth_window = 0;
-
-//! If set, we need to re-query monitor data and adjust windows.
-int per_monitor_windows_dirty = 1;
 
 #ifdef HAVE_XKB_EXT
 //! If set, we show Xkb keyboard layout name.
@@ -527,44 +524,29 @@ void CreateOrUpdatePerMonitorWindow(size_t i, const Monitor *monitor, int region
   num_windows = i + 1;
 }
 
-void UpdatePerMonitorWindows(Monitor* monitors, size_t num_monitors, int region_w, int region_h) {
-  if (single_auth_window) {
-    Window unused_root, unused_child;
-    int unused_root_x, unused_root_y, x, y;
-    unsigned int unused_mask;
-    XQueryPointer(display, parent_window, &unused_root, &unused_child,
-                  &unused_root_x, &unused_root_y, &x, &y, &unused_mask);
-    for (size_t i = 0; i < num_monitors; ++i) {
-      if (x >= monitors[i].x && x < monitors[i].x + monitors[i].width &&
-          y >= monitors[i].y && y < monitors[i].y + monitors[i].height) {
-        CreateOrUpdatePerMonitorWindow(0, &monitors[i], region_w, region_h);
-        return;
-      }
-    }
-    if (num_monitors > 0) {
-      CreateOrUpdatePerMonitorWindow(0, &monitors[0], region_w, region_h);
-      DestroyPerMonitorWindows(1);
-    } else {
-      DestroyPerMonitorWindows(0);
-    }
+void UpdatePerMonitorWindows(Monitor* monitor, int region_w, int region_h) {
+  if (monitor == NULL) {
+    DestroyPerMonitorWindows(0);
     return;
   }
 
-  // 1 window per monitor.
-  size_t new_num_windows = num_monitors;
+  Window unused_root, unused_child;
+  int unused_root_x, unused_root_y, x, y;
+  unsigned int unused_mask;
 
-  // Update or create everything.
-  for (size_t i = 0; i < new_num_windows; ++i) {
-    CreateOrUpdatePerMonitorWindow(i, &monitors[i], region_w, region_h);
+  XQueryPointer(display, parent_window, &unused_root, &unused_child,
+                &unused_root_x, &unused_root_y, &x, &y, &unused_mask);
+
+  if (x >= monitor->x && x < monitor->x + monitor->width &&
+      y >= monitor->y && y < monitor->y + monitor->height) {
+    CreateOrUpdatePerMonitorWindow(0, monitor, region_w, region_h);
+    return;
   }
 
-  // Kill all the old stuff.
-  DestroyPerMonitorWindows(new_num_windows);
+  CreateOrUpdatePerMonitorWindow(0, monitor, region_w, region_h);
+  DestroyPerMonitorWindows(1);
 
-  if (num_windows != new_num_windows) {
-    Log("Unreachable code - expected to get %d windows, got %d",
-        (int)new_num_windows, (int)num_windows);
-  }
+  return;
 }
 
 int TextAscent(XftFont *font) {
@@ -682,22 +664,17 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
-  static size_t num_monitors = 0;
-  static Monitor monitors[MAX_WINDOWS];
+  int region_w = main_monitor->width;
+  int region_h = main_monitor->height * 0.55 * (main_monitor->ppi/100);
 
-  num_monitors = GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
-  int region_w = monitors[0].width;
-  int region_h = monitors[0].height * 0.55 * (monitors[0].ppi/100);
-
-  UpdatePerMonitorWindows(monitors, num_monitors, region_w, region_h);
-  per_monitor_windows_dirty = 0;
+  UpdatePerMonitorWindows(main_monitor, region_w, region_h);
 
   for (size_t i = 0; i < num_windows; ++i) {
     int x = region_w / 2;
 
     int ascent = TextAscent(xft_font_large);
     int descent = TextDescent(xft_font_large);
-    int y = (ascent + descent + 20) * (monitors[0].ppi/100);
+    int y = (ascent + descent + 20) * (main_monitor->ppi/100);
 
     XClearWindow(display, windows[i]);
 
@@ -953,13 +930,6 @@ int Prompt(char *msg, char **response, int echo) {
           break;
       }
     }
-
-    // Handle X11 events that queued up.
-    while (!done && XPending(display) && (XNextEvent(display, &priv.ev), 1)) {
-      if (IsMonitorChangeEvent(display, priv.ev.type)) {
-        per_monitor_windows_dirty = 1;
-      }
-    }
   }
 
   // priv contains password related data, so better clear it.
@@ -1171,7 +1141,6 @@ int main(int argc_local, char **argv_local) {
   prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 60);
   password_prompt = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "asterisks");
   auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
-  single_auth_window = GetIntSetting("XSECURELOCK_SINGLE_AUTH_WINDOW", 0);
 
 #ifdef HAVE_XKB_EXT
   show_keyboard_layout = GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
@@ -1291,6 +1260,10 @@ int main(int argc_local, char **argv_local) {
 #endif
 
   SelectMonitorChangeEvents(display, main_window);
+
+  Monitor monitors[MAX_WINDOWS];
+  GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
+  main_monitor = &monitors[0];
 
   InitWaitPgrp();
 
