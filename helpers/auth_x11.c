@@ -87,10 +87,10 @@ Display *display;
 //! The X11 window provided by main. Provided from $XSCREENSAVER_WINDOW.
 Window main_window;
 
-//! main_window's parent. Used to create per-monitor siblings.
+//! The main_window's parent. Used to create per-monitor siblings.
 Window parent_window;
 
-//! the main or primary monitor to render the ui
+//! The main or primary monitor to render the ui
 static Monitor *main_monitor;
 
 //! The X11 core font for the PAM messages.
@@ -1262,7 +1262,7 @@ int main(int argc_local, char **argv_local) {
   SelectMonitorChangeEvents(display, main_window);
 
   Monitor monitors[MAX_WINDOWS];
-  GetMonitors(display, parent_window, monitors, MAX_WINDOWS);
+  GetMonitors(display, parent_window, monitors);
   main_monitor = &monitors[0];
 
   InitWaitPgrp();

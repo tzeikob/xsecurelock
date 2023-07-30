@@ -21,64 +21,16 @@ limitations under the License.
 #include <string.h>    // for memcmp, memset
 #include <math.h>      // for math functions
 
-#ifdef HAVE_XRANDR_EXT
 #include <X11/extensions/Xrandr.h>  // for XRRMonitorInfo, XRRCrtcInfo, XRRO...
 #include <X11/extensions/randr.h>   // for RANDR_MAJOR, RRNotify, RANDR_MINOR
-#if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
-#define HAVE_XRANDR15_EXT
-#endif
-#endif
 
 #include "../env_settings.h"  // for GetIntSetting
 #include "../logging.h"       // for Log
 
-#ifdef HAVE_XRANDR_EXT
-static Display* initialized_for = NULL;
-static int have_xrandr12_ext;
-#ifdef HAVE_XRANDR15_EXT
-static int have_xrandr15_ext;
-#endif
 static int event_base;
 static int error_base;
 
-static int MaybeInitXRandR(Display* dpy) {
-  if (dpy == initialized_for) {
-    return have_xrandr12_ext;
-  }
-
-  have_xrandr12_ext = 0;
-#ifdef HAVE_XRANDR15_EXT
-  have_xrandr15_ext = 0;
-#endif
-  if (XRRQueryExtension(dpy, &event_base, &error_base)) {
-    int major, minor;
-    if (XRRQueryVersion(dpy, &major, &minor)) {
-      // XRandR before 1.2 can't connect multiple screens to one, so the
-      // default root window size tracking is sufficient for that.
-      if (major > 1 || (major == 1 && minor >= 2)) {
-        if (!GetIntSetting("XSECURELOCK_NO_XRANDR", 0)) {
-          have_xrandr12_ext = 1;
-        }
-      }
-#ifdef HAVE_XRANDR15_EXT
-      if (major > 1 || (major == 1 && minor >= 5)) {
-        if (!GetIntSetting("XSECURELOCK_NO_XRANDR15", 0)) {
-          have_xrandr15_ext = 1;
-        }
-      }
-#endif
-    }
-  }
-  initialized_for = dpy;
-  return have_xrandr12_ext;
-}
-#endif
-
 #define CLAMP(x, mi, ma) ((x) < (mi) ? (mi) : (x) > (ma) ? (ma) : (x))
-
-static int CompareMonitors(const void* a, const void* b) {
-  return memcmp(a, b, sizeof(Monitor));
-}
 
 static int CompareMonitorsByPrimary(const void* a, const void* b) {
   Monitor *monitorA = (Monitor *) a;
@@ -115,108 +67,54 @@ static double ComputePpi(int w, int h, int mw, int mh) {
   return diagonal_px / diagonal_in;
 }
 
-static void AddMonitor(Monitor* out_monitors, size_t* num_monitors,
-                       size_t max_monitors, int x, int y, int w, int h,
-                       int mw, int mh, double ppi, int is_primary) {
-#ifdef DEBUG_EVENTS
-  Log("AddMonitor %d %d %d %d %d %d %f %d", x, y, w, h, mw, mh, ppi, is_primary);
-#endif
-  // Too many monitors? Stop collecting them.
-  if (*num_monitors >= max_monitors) {
-#ifdef DEBUG_EVENTS
-    Log("Skip (too many)");
-#endif
-    return;
-  }
+static void AddMonitor(Monitor* monitors, size_t* num,
+                       int x, int y, int w, int h, int mw, int mh, double ppi, int is_primary) {
   // Skip empty "monitors".
   if (w <= 0 || h <= 0) {
-#ifdef DEBUG_EVENTS
-    Log("Skip (zero)");
-#endif
     return;
   }
-  // Skip overlapping "monitors" (typically in cloned display setups).
-  for (size_t i = 0; i < *num_monitors; ++i) {
-    if (IntervalsOverlap(x, w, out_monitors[i].x, out_monitors[i].width) &&
-        IntervalsOverlap(y, h, out_monitors[i].y, out_monitors[i].height)) {
-#ifdef DEBUG_EVENTS
-      Log("Skip (overlap with %d)", (int)i);
-#endif
+
+  // Skip overlapping monitors
+  for (size_t i = 0; i < *num; ++i) {
+    if (IntervalsOverlap(x, w, monitors[i].x, monitors[i].width) &&
+        IntervalsOverlap(y, h, monitors[i].y, monitors[i].height)) {
       return;
     }
   }
-#ifdef DEBUG_EVENTS
-  Log("Monitor %d = %d %d %d %d %d %d %f %d", (int)*num_monitors, x, y, w, h, mw, mh, ppi, is_primary);
-#endif
-  out_monitors[*num_monitors].x = x;
-  out_monitors[*num_monitors].y = y;
-  out_monitors[*num_monitors].width = w;
-  out_monitors[*num_monitors].height = h;
-  out_monitors[*num_monitors].mwidth = mw;
-  out_monitors[*num_monitors].mheight = mh;
-  out_monitors[*num_monitors].ppi = ppi;
-  out_monitors[*num_monitors].is_primary = is_primary;
-  ++*num_monitors;
+
+  monitors[*num].x = x;
+  monitors[*num].y = y;
+  monitors[*num].width = w;
+  monitors[*num].height = h;
+  monitors[*num].mwidth = mw;
+  monitors[*num].mheight = mh;
+  monitors[*num].ppi = ppi;
+  monitors[*num].is_primary = is_primary;
+
+  ++*num;
 }
 
-#ifdef HAVE_XRANDR_EXT
-static int GetMonitorsXRandR12(Display* dpy, Window window, int wx, int wy,
-                               int ww, int wh, Monitor* out_monitors,
-                               size_t* out_num_monitors, size_t max_monitors) {
-  XRRScreenResources* screenres = XRRGetScreenResources(dpy, window);
-  
-  if (screenres == NULL) {
-    return 0;
+static void GetMonitorsXRandR(Display* dpy, Window window, const XWindowAttributes* xwa,
+                             Monitor* monitors, size_t* num) {
+  // Translate to absolute coordinates so we can compare them to XRandR data.
+  int wx, wy;
+  Window child;
+
+  if (!XTranslateCoordinates(dpy, window, DefaultRootWindow(dpy),
+                             xwa->x, xwa->y, &wx, &wy, &child)) {
+    Log("XTranslateCoordinates failed");
+    wx = xwa->x;
+    wy = xwa->y;
   }
 
-  for (int i = 0; i < screenres->noutput; ++i) {
-    XRROutputInfo* output = XRRGetOutputInfo(dpy, screenres, screenres->outputs[i]);
-
-    if (output == NULL) {
-      continue;
-    }
-
-    if (output->connection == RR_Connected) {
-      // NOTE: If an output has multiple Crtcs (i.e. if the screen is
-      // cloned), we only look at the first. Let's assume that the center
-      // of that one should always be onscreen anyway (even though they
-      // may not be, as cloned displays can have different panning
-      // settings).
-      RRCrtc crtc = (output->crtc ? output->crtc : output->ncrtc ? output->crtcs[0] : 0);
-      XRRCrtcInfo* info = (crtc ? XRRGetCrtcInfo(dpy, screenres, crtc) : 0);
-
-      if (info != NULL) {
-        int x = CLAMP(info->x, wx, wx + ww) - wx;
-        int y = CLAMP(info->y, wy, wy + wh) - wy;
-        int w = CLAMP(info->x + (int)info->width, wx + x, wx + ww) - (wx + x);
-        int h = CLAMP(info->y + (int)info->height, wy + y, wy + wh) - (wy + y);
-
-        AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, 0, 0, 100, 0);
-        XRRFreeCrtcInfo(info);
-      }
-    }
-
-    XRRFreeOutputInfo(output);
-  }
-
-  XRRFreeScreenResources(screenres);
-
-  return *out_num_monitors != 0;
-}
-
-#ifdef HAVE_XRANDR15_EXT
-static int GetMonitorsXRandR15(Display* dpy, Window window, int wx, int wy,
-                               int ww, int wh, Monitor* out_monitors,
-                               size_t* out_num_monitors, size_t max_monitors) {
-  if (!have_xrandr15_ext) {
-    return 0;
-  }
+  int ww = xwa->width;
+  int wh = xwa->height;
 
   int num_rrmonitors;
   XRRMonitorInfo* rrmonitors = XRRGetMonitors(dpy, window, 1, &num_rrmonitors);
 
   if (rrmonitors == NULL) {
-    return 0;
+    return;
   }
 
   for (int i = 0; i < num_rrmonitors; ++i) {
@@ -235,123 +133,40 @@ static int GetMonitorsXRandR15(Display* dpy, Window window, int wx, int wy,
       is_primary = 1;
     }
 
-    AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, mw, mh, ppi, is_primary);
+    AddMonitor(monitors, num, x, y, w, h, mw, mh, ppi, is_primary);
   }
   
   XRRFreeMonitors(rrmonitors);
-  return *out_num_monitors != 0;
-}
-#endif
-
-static int GetMonitorsXRandR(Display* dpy, Window window,
-                             const XWindowAttributes* xwa,
-                             Monitor* out_monitors, size_t* out_num_monitors,
-                             size_t max_monitors) {
-  if (!MaybeInitXRandR(dpy)) {
-    return 0;
-  }
-
-  // Translate to absolute coordinates so we can compare them to XRandR data.
-  int wx, wy;
-  Window child;
-  if (!XTranslateCoordinates(dpy, window, DefaultRootWindow(dpy), xwa->x,
-                             xwa->y, &wx, &wy, &child)) {
-    Log("XTranslateCoordinates failed");
-    wx = xwa->x;
-    wy = xwa->y;
-  }
-
-#ifdef HAVE_XRANDR15_EXT
-  if (GetMonitorsXRandR15(dpy, window, wx, wy, xwa->width, xwa->height,
-                          out_monitors, out_num_monitors, max_monitors)) {
-    return 1;
-  }
-#endif
-
-  return GetMonitorsXRandR12(dpy, window, wx, wy, xwa->width, xwa->height,
-                             out_monitors, out_num_monitors, max_monitors);
-}
-#endif
-
-static void GetMonitorsGuess(const XWindowAttributes* xwa,
-                             Monitor* out_monitors, size_t* out_num_monitors,
-                             size_t max_monitors) {
-  // XRandR-less dummy fallback.
-  size_t guessed_monitors = CLAMP((size_t)(xwa->width * 9 + xwa->height * 8) /
-                                      (size_t)(xwa->height * 16),  //
-                                  1, max_monitors);
-  for (size_t i = 0; i < guessed_monitors; ++i) {
-    int x = xwa->width * i / guessed_monitors;
-    int y = 0;
-    int w = (xwa->width * (i + 1) / guessed_monitors) -
-            (xwa->width * i / guessed_monitors);
-    int h = xwa->height;
-
-    AddMonitor(out_monitors, out_num_monitors, max_monitors, x, y, w, h, 0, 0, 100, 0);
-  }
 }
 
-size_t GetMonitors(Display* dpy, Window window, Monitor* out_monitors, size_t max_monitors) {
-  if (max_monitors < 1) {
-    return 0;
-  }
-
-  size_t num_monitors = 0;
-
+size_t GetMonitors(Display* dpy, Window window, Monitor* monitors) {
   // As outputs will be relative to the window, we have to query its attributes.
   XWindowAttributes xwa;
   XGetWindowAttributes(dpy, window, &xwa);
 
-  do {
-#ifdef HAVE_XRANDR_EXT
-    if (GetMonitorsXRandR(dpy, window, &xwa, out_monitors, &num_monitors, max_monitors)) {
-      break;
-    }
-#endif
-    GetMonitorsGuess(&xwa, out_monitors, &num_monitors, max_monitors);
-  } while (0);
+  size_t num = 0;
+  GetMonitorsXRandR(dpy, window, &xwa, monitors, &num);
 
   // Sort the monitors in some deterministic order.
-  qsort(out_monitors, num_monitors, sizeof(*out_monitors), CompareMonitorsByPrimary);
+  qsort(monitors, num, sizeof(*monitors), CompareMonitorsByPrimary);
 
-  // Fill the rest with zeros.
-  if (num_monitors < max_monitors) {
-    memset(out_monitors + num_monitors, 0,
-           (max_monitors - num_monitors) * sizeof(*out_monitors));
-  }
-
-  return num_monitors;
+  return num;
 }
 
 void SelectMonitorChangeEvents(Display* dpy, Window window) {
-#ifdef HAVE_XRANDR_EXT
-  if (MaybeInitXRandR(dpy)) {
-    XRRSelectInput(dpy, window,
-                   RRScreenChangeNotifyMask | RRCrtcChangeNotifyMask | RROutputChangeNotifyMask);
-  }
-#else
-  (void)dpy;
-  (void)window;
-#endif
+  XRRQueryExtension(dpy, &event_base, &error_base);
+  XRRSelectInput(dpy, window,
+                 RRScreenChangeNotifyMask | RRCrtcChangeNotifyMask | RROutputChangeNotifyMask);
 }
 
 int IsMonitorChangeEvent(Display* dpy, int type) {
-#ifdef HAVE_XRANDR_EXT
-  if (MaybeInitXRandR(dpy)) {
-    switch (type - event_base) {
-      case RRScreenChangeNotify:
-      case RRNotify + RRNotify_CrtcChange:
-      case RRNotify + RRNotify_OutputChange:
-        return 1;
-      default:
-        return 0;
-    }
+  XRRQueryExtension(dpy, &event_base, &error_base);
+  switch (type - event_base) {
+    case RRScreenChangeNotify:
+    case RRNotify + RRNotify_CrtcChange:
+    case RRNotify + RRNotify_OutputChange:
+      return 1;
+    default:
+      return 0;
   }
-#else
-  (void)dpy;
-  (void)type;
-#endif
-
-  // XRandR-less dummy fallback.
-  return 0;
 }

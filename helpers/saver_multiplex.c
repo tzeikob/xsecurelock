@@ -45,9 +45,9 @@ static void HandleSIGTERM(int signo) {
 static const char* saver_executable;
 
 static Display* display;
-static Monitor monitors[MAX_MONITORS];
+static Monitor monitors[1];
 static size_t num_monitors;
-static Window windows[MAX_MONITORS];
+static Window windows[1];
 
 static void WatchSavers(void) {
   for (size_t i = 0; i < num_monitors; ++i) {
@@ -109,7 +109,12 @@ int main(int argc, char** argv) {
       GetExecutablePathSetting("XSECURELOCK_SAVER", SAVER_EXECUTABLE, 0);
 
   SelectMonitorChangeEvents(display, parent);
-  num_monitors = GetMonitors(display, parent, monitors, MAX_MONITORS);
+
+  Monitor all_monitors[MAX_MONITORS];
+  GetMonitors(display, parent, all_monitors);
+
+  monitors[0] = all_monitors[0];
+  num_monitors = 1;
 
   SpawnSavers(parent, argc, argv);
 
@@ -137,9 +142,13 @@ int main(int argc, char** argv) {
     XEvent ev;
     while (XPending(display) && (XNextEvent(display, &ev), 1)) {
       if (IsMonitorChangeEvent(display, ev.type)) {
-        Monitor new_monitors[MAX_SAVERS];
-        size_t new_num_monitors =
-            GetMonitors(display, parent, new_monitors, MAX_SAVERS);
+        Monitor new_all_monitors[MAX_SAVERS];
+        GetMonitors(display, parent, new_all_monitors);
+
+        Monitor new_monitors[1];
+        new_monitors[0] = new_all_monitors[0];
+        size_t new_num_monitors = 1;
+
         if (new_num_monitors != num_monitors ||
             memcmp(new_monitors, monitors, sizeof(monitors)) != 0) {
           KillSavers();
