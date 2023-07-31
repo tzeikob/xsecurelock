@@ -329,6 +329,12 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
         XkbFreeKeyboard(xkb, 0, True);
         return "";
       }
+
+      // Remove country code from the layout if so, e.g. English (US)
+      if(!strcmp(strrchr(layout, '\0') - 1, ")")) {
+        n = n-5;
+      }
+
       memcpy(p, layout, n);
       XFree(layout);
       p += n;
