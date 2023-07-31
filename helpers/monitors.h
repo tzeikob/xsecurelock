@@ -29,20 +29,16 @@ typedef struct {
   int is_primary;
 } Monitor;
 
-/*! \brief Queries the current monitor configuration.
+/*! \brief Queries the current primary monitor.
  *
- * Note: out_monitors will be zero padded and sorted in some deterministic order
- * so memcmp can be used to check if the monitor configuration has actually
- * changed.
+ * Note: if no primary monitor is found the first in order monitor
+ *       of the configuration will be returned.
  *
  * \param dpy The current display.
  * \param window The window this application intends to draw in.
- * \param monitors A pointer to an array that will receive the monitor
- *   configuration (in coordinates relative and clipped to the window).
- *
- * \return The number of monitors returned in the array.
+ * \param monitor A pointer to the primary monitor of the configuration.
  */
-size_t GetMonitors(Display* dpy, Window window, Monitor* monitors);
+void GetPrimaryMonitor(Display* dpy, Window window, Monitor* monitor);
 
 /*! \brief Enable receiving monitor change events for the given display at window.
  */

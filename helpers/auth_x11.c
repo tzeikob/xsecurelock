@@ -51,7 +51,7 @@ limitations under the License.
 #include "../wm_properties.h"     // for SetWMProperties
 #include "../xscreensaver_api.h"  // for ReadWindowID
 #include "authproto.h"            // for WritePacket, ReadPacket, PTYPE_R...
-#include "monitors.h"             // for Monitor, GetMonitors, IsMonitorC...
+#include "monitors.h"             // for Monitor, GetPrimaryMonitor, IsMonitorC...
 
 #if __STDC_VERSION__ >= 201112L
 #define STATIC_ASSERT(state, message) _Static_assert(state, message)
@@ -90,9 +90,6 @@ Window main_window;
 //! The main_window's parent. Used to create per-monitor siblings.
 Window parent_window;
 
-//! The main or primary monitor to render the ui
-static Monitor *main_monitor;
-
 //! The X11 core font for the PAM messages.
 XFontStruct *core_font;
 
@@ -113,6 +110,9 @@ XColor xcolor_foreground;
 //! The warning color (used as foreground).
 XColor xcolor_warning;
 
+//! The main or primary monitor to render the ui
+static Monitor main_monitor;
+
 //! The cursor character displayed at the end of the masked password input.
 static const char cursor[] = "";
 
@@ -127,7 +127,7 @@ int show_locks_and_latches = 0;
 #endif
 
 #define MAIN_WINDOW 0
-#define MAX_WINDOWS 16
+#define MAX_WINDOWS 2
 
 //! The number of active X11 per-monitor windows.
 size_t num_windows = 0;
@@ -664,33 +664,31 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
-  int region_w = main_monitor->width;
-  int region_h = main_monitor->height * 0.55 * (main_monitor->ppi/100);
+  int region_w = main_monitor.width;
+  int region_h = main_monitor.height * 0.55 * (main_monitor.ppi/100);
 
-  UpdatePerMonitorWindows(main_monitor, region_w, region_h);
+  UpdatePerMonitorWindows(&main_monitor, region_w, region_h);
 
-  for (size_t i = 0; i < num_windows; ++i) {
-    int x = region_w / 2;
+  int x = region_w / 2;
 
-    int ascent = TextAscent(xft_font_large);
-    int descent = TextDescent(xft_font_large);
-    int y = (ascent + descent + 20) * (main_monitor->ppi/100);
+  int ascent = TextAscent(xft_font_large);
+  int descent = TextDescent(xft_font_large);
+  int y = (ascent + descent + 20) * (main_monitor.ppi/100);
 
-    XClearWindow(display, windows[i]);
+  XClearWindow(display, windows[0]);
 
-    if (strlen(message) > 0) {
-      DrawString(i, x - tw_message / 2, y, is_warning, message, len_message, xft_font_large);
-    } else {
-      DrawString(i, x - tw_prompt / 2, y, is_warning, prompt, len_prompt, xft_font_large);
-    }
-
-    x = 5;
-    y = region_h - 5;
-    DrawString(i, x, y, 0, login, len_login, xft_font);
-
-    x = region_w - tw_indicators - 5;
-    DrawString(i, x, y, indicators_warning, indicators, len_indicators, xft_font);
+  if (strlen(message) > 0) {
+    DrawString(0, x - tw_message / 2, y, is_warning, message, len_message, xft_font_large);
+  } else {
+    DrawString(0, x - tw_prompt / 2, y, is_warning, prompt, len_prompt, xft_font_large);
   }
+
+  x = 5;
+  y = region_h - 5;
+  DrawString(0, x, y, 0, login, len_login, xft_font);
+
+  x = region_w - tw_indicators - 5;
+  DrawString(0, x, y, indicators_warning, indicators, len_indicators, xft_font);
 
   // Make the things just drawn appear on the screen as soon as possible.
   XFlush(display);
@@ -1260,10 +1258,7 @@ int main(int argc_local, char **argv_local) {
 #endif
 
   SelectMonitorChangeEvents(display, main_window);
-
-  Monitor monitors[MAX_WINDOWS];
-  GetMonitors(display, parent_window, monitors);
-  main_monitor = &monitors[0];
+  GetPrimaryMonitor(display, parent_window, &main_monitor);
 
   InitWaitPgrp();
 

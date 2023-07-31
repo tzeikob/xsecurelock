@@ -32,27 +32,6 @@ static int error_base;
 
 #define CLAMP(x, mi, ma) ((x) < (mi) ? (mi) : (x) > (ma) ? (ma) : (x))
 
-static int CompareMonitorsByPrimary(const void* a, const void* b) {
-  Monitor *monitorA = (Monitor *) a;
-  Monitor *monitorB = (Monitor *) b;
-
-  return monitorB->is_primary - monitorA->is_primary;
-}
-
-static int IntervalsOverlap(int astart, int asize, int bstart, int bsize) {
-  // Compute exclusive bounds.
-  int aend = astart + asize;
-  int bend = bstart + bsize;
-
-  // If one interval starts at or after the other, there's no overlap.
-  if (astart >= bend || bstart >= aend) {
-    return 0;
-  }
-
-  // Otherwise, there must be an overlap.
-  return 1;
-}
-
 static double ComputePpi(int w, int h, int mw, int mh) {
   double diagonal_px = sqrt(pow(w, 2) + pow(h, 2));
 
@@ -67,41 +46,12 @@ static double ComputePpi(int w, int h, int mw, int mh) {
   return diagonal_px / diagonal_in;
 }
 
-static void AddMonitor(Monitor* monitors, size_t* num,
-                       int x, int y, int w, int h, int mw, int mh, double ppi, int is_primary) {
-  // Skip empty "monitors".
-  if (w <= 0 || h <= 0) {
-    return;
-  }
-
-  // Skip overlapping monitors
-  for (size_t i = 0; i < *num; ++i) {
-    if (IntervalsOverlap(x, w, monitors[i].x, monitors[i].width) &&
-        IntervalsOverlap(y, h, monitors[i].y, monitors[i].height)) {
-      return;
-    }
-  }
-
-  monitors[*num].x = x;
-  monitors[*num].y = y;
-  monitors[*num].width = w;
-  monitors[*num].height = h;
-  monitors[*num].mwidth = mw;
-  monitors[*num].mheight = mh;
-  monitors[*num].ppi = ppi;
-  monitors[*num].is_primary = is_primary;
-
-  ++*num;
-}
-
-static void GetMonitorsXRandR(Display* dpy, Window window, const XWindowAttributes* xwa,
-                             Monitor* monitors, size_t* num) {
+static void QueryXRandR(Display* dpy, Window window, const XWindowAttributes* xwa, Monitor* monitor) {
   // Translate to absolute coordinates so we can compare them to XRandR data.
   int wx, wy;
   Window child;
 
-  if (!XTranslateCoordinates(dpy, window, DefaultRootWindow(dpy),
-                             xwa->x, xwa->y, &wx, &wy, &child)) {
+  if (!XTranslateCoordinates(dpy, window, DefaultRootWindow(dpy), xwa->x, xwa->y, &wx, &wy, &child)) {
     Log("XTranslateCoordinates failed");
     wx = xwa->x;
     wy = xwa->y;
@@ -117,7 +67,7 @@ static void GetMonitorsXRandR(Display* dpy, Window window, const XWindowAttribut
     return;
   }
 
-  for (int i = 0; i < num_rrmonitors; ++i) {
+  for (int i = num_rrmonitors - 1; i >= 0; --i) {
     XRRMonitorInfo* info = &rrmonitors[i];
 
     int x = CLAMP(info->x, wx, wx + ww) - wx;
@@ -127,30 +77,33 @@ static void GetMonitorsXRandR(Display* dpy, Window window, const XWindowAttribut
     int mw = (int) info->mwidth;
     int mh = (int) info->mheight;
     double ppi = ComputePpi(info->width, info->height, info->mwidth, info->mheight);
-    int is_primary = 0;
+    int is_primary = (info->primary) ? 1 : 0;
 
-    if (info->primary) {
-      is_primary = 1;
+    if (w < 0 || h < 0) {
+      continue;
     }
 
-    AddMonitor(monitors, num, x, y, w, h, mw, mh, ppi, is_primary);
+    monitor->x = x;
+    monitor->y = y;
+    monitor->width = w;
+    monitor->height = h;
+    monitor->mwidth = mw;
+    monitor->mheight = mh;
+    monitor->ppi = ppi;
+    monitor->is_primary = is_primary;
+
+    if (info->primary) {
+      break;
+    }
   }
   
   XRRFreeMonitors(rrmonitors);
 }
 
-size_t GetMonitors(Display* dpy, Window window, Monitor* monitors) {
-  // As outputs will be relative to the window, we have to query its attributes.
+void GetPrimaryMonitor(Display* dpy, Window window, Monitor* monitor) {
   XWindowAttributes xwa;
   XGetWindowAttributes(dpy, window, &xwa);
-
-  size_t num = 0;
-  GetMonitorsXRandR(dpy, window, &xwa, monitors, &num);
-
-  // Sort the monitors in some deterministic order.
-  qsort(monitors, num, sizeof(*monitors), CompareMonitorsByPrimary);
-
-  return num;
+  QueryXRandR(dpy, window, &xwa, monitor);
 }
 
 void SelectMonitorChangeEvents(Display* dpy, Window window) {
