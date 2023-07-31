@@ -665,9 +665,10 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
   GetPrimaryMonitor(display, parent_window, &main_monitor);
+  double scale = main_monitor.ppi/100;
 
   int region_w = main_monitor.width;
-  int region_h = main_monitor.height * 0.55 * (main_monitor.ppi/100);
+  int region_h = main_monitor.height * 0.55 * scale;
 
   UpdatePerMonitorWindows(&main_monitor, region_w, region_h);
 
@@ -675,7 +676,7 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
 
   int ascent = TextAscent(xft_font_large);
   int descent = TextDescent(xft_font_large);
-  int y = (ascent + descent + 20) * (main_monitor.ppi/100);
+  int y = (ascent + descent + 30) * scale;
 
   XClearWindow(display, windows[0]);
 
@@ -1074,35 +1075,10 @@ done:
 }
 
 #ifdef HAVE_XFT_EXT
-XftFont *FixedXftFontOpenName(Display *display, int screen, const char *font_name) {
-  XftFont *xft_font = XftFontOpenName(display, screen, font_name);
-#ifdef HAVE_FONTCONFIG
-  // Workaround for Xft crashing the process when trying to render a colored
-  // font. See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=916349 and
-  // https://gitlab.freedesktop.org/xorg/lib/libxft/issues/6 among others. In
-  // the long run this should be ported to a different font rendering library
-  // than Xft.
-  FcBool iscol;
-  if (xft_font != NULL &&
-      FcPatternGetBool(xft_font->pattern, FC_COLOR, 0, &iscol) && iscol) {
-    Log("Colored font %s is not supported by Xft", font_name);
-    XftFontClose(display, xft_font);
-    return NULL;
-  }
-#else
-#warning "Xft enabled without fontconfig. May crash trying to use emoji fonts."
-  Log("Xft enabled without fontconfig. May crash trying to use emoji fonts.");
-#endif
-  return xft_font;
-}
-#endif
-
-#ifdef HAVE_XFT_EXT
-XftFont *FixedXftFontOpen(Display *display, int screen, const char *font_name) {
+XftFont *CreateXftFont(Display *display, int screen, const char *font_name, double size) {
   XftFont *xft_font = XftFontOpen (display, screen,
                                  XFT_FAMILY, XftTypeString, font_name,
-                                 XFT_SIZE, XftTypeDouble, 22.0,
-                                 NULL);
+                                 XFT_SIZE, XftTypeDouble, size, NULL);
 #ifdef HAVE_FONTCONFIG
   // Workaround for Xft crashing the process when trying to render a colored
   // font. See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=916349 and
@@ -1200,6 +1176,11 @@ int main(int argc_local, char **argv_local) {
   xft_font_large = NULL;
 #endif
 
+  GetPrimaryMonitor(display, parent_window, &main_monitor);
+  double scale = main_monitor.ppi/100;
+  double font_size = 12 * scale;
+  double font_large_size = 20 * scale;
+
   const char *font_name = GetStringSetting("XSECURELOCK_FONT", "");
 
   // First try parsing the font name as an X11 core font. We're trying these
@@ -1211,8 +1192,8 @@ int main(int argc_local, char **argv_local) {
     have_font = (core_font != NULL);
 #ifdef HAVE_XFT_EXT
     if (!have_font) {
-      xft_font = FixedXftFontOpenName(display, DefaultScreen(display), font_name);
-      xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), font_name);
+      xft_font = CreateXftFont(display, DefaultScreen(display), font_name, font_size);
+      xft_font_large = CreateXftFont(display, DefaultScreen(display), font_name, font_large_size);
       have_font = (xft_font != NULL);
     }
 #endif
@@ -1223,8 +1204,8 @@ int main(int argc_local, char **argv_local) {
           font_name);
     }
 #ifdef HAVE_XFT_EXT
-    xft_font = FixedXftFontOpenName(display, DefaultScreen(display), "monospace");
-    xft_font_large = FixedXftFontOpen(display, DefaultScreen(display), "monospace");
+    xft_font = CreateXftFont(display, DefaultScreen(display), "monospace", font_size);
+    xft_font_large = CreateXftFont(display, DefaultScreen(display), "monospace", font_large_size);
     have_font = (xft_font != NULL);
 #endif
   }
@@ -1260,10 +1241,7 @@ int main(int argc_local, char **argv_local) {
 #endif
 
   SelectMonitorChangeEvents(display, main_window);
-  GetPrimaryMonitor(display, parent_window, &main_monitor);
-
   InitWaitPgrp();
-
   int status = Authenticate();
 
   // Clear any possible processing message by closing our windows.

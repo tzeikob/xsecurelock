@@ -21,10 +21,13 @@ import re
 import socket
 import time
 import cairo
-import gi
+import math
 
+import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GdkX11, GLib, GdkPixbuf, Gio
+
+from screeninfo import get_monitors
 
 def rgb(hex):
   """Convert a color given in hexadecimal format to rgb."""
@@ -116,11 +119,30 @@ def on_clock_change(ctx):
   if ctx.leader:
     GLib.timeout_add(1, on_clock_change, ctx)
 
+def computePpi(w, h, mw, mh):
+  diagonal_px = math.sqrt(pow(w, 2) + pow(h, 2))
+
+  iw = mw/10/2.54
+  ih = mh/10/2.54
+  diagonal_in = math.sqrt(pow(iw, 2) + pow(ih, 2))
+
+  if (diagonal_px == 0 or diagonal_in == 0):
+    return 100
+
+  return diagonal_px / diagonal_in
+
 if __name__ == "__main__":
+  scale = 1.0
+  for m in get_monitors():
+    ppi = computePpi(m.width, m.height, m.width_mm, m.height_mm)
+    scale = ppi / 100.0
+    if m.is_primary:
+      break
+
   ctx = types.SimpleNamespace()
 
   ctx.font_family = os.getenv("XSECURELOCK_SAVER_FONT", "Monospace")
-  ctx.font_size = int(os.getenv("XSECURELOCK_SAVER_FONT_SIZE", 80))
+  ctx.font_size = int(os.getenv("XSECURELOCK_SAVER_FONT_SIZE", 80)) * scale
   ctx.date_format = os.getenv("XSECURELOCK_SAVER_DATE_FORMAT", "%a, %-d %B, %Y")
   ctx.time_format = os.getenv("XSECURELOCK_SAVER_TIME_FORMAT", "%I:%M %p")
   ctx.background_color = rgb(os.getenv("XSECURELOCK_SAVER_BACKGROUND", "000000"))
