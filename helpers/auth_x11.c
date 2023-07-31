@@ -372,38 +372,35 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
     ADD_INDICATOR(Mod4Mask, "Mod4");
     ADD_INDICATOR(Mod5Mask, "Mod5");
   } else {
+    int is_caps_on = 0;
+
     for (int i = 0; i < XkbNumIndicators; i++) {
       if (!(istate & (1U << i))) {
         continue;
       }
+
       Atom namea = xkb->names->indicators[i];
       if (namea == None) {
         continue;
       }
+      
       char *name = XGetAtomName(display, namea);
-      if (strcmp(name, "Caps Lock") != 0) {
-        continue;
-      }
-      if (have_output) {
-        if (2 >= sizeof(buf) - (p - buf)) {
-          Log("Not enough space to store another modifier name");
-          break;
-        }
-        memcpy(p, ", ", 2);
-        p += 2;
-      }
-      size_t n = strlen(name);
-      if (n >= sizeof(buf) - (p - buf)) {
-        Log("Not enough space to store modifier name '%s'", name);
+      if (strcmp(name, "Caps Lock") == 0) {
+        is_caps_on = 1;
         XFree(name);
         break;
       }
-      memcpy(p, name, n);
+
       XFree(name);
-      p += n;
-      have_output = 1;
     }
+
+    char *cpslck = (is_caps_on == 1) ? " [ABC]" : " [Abc]";
+    size_t n = strlen(cpslck);
+    memcpy(p, cpslck, n);
+    p += n;
+    have_output = 1;
   }
+
   *p = 0;
   XkbFreeKeyboard(xkb, 0, True);
   return have_output ? buf : "";
