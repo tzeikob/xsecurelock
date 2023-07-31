@@ -664,6 +664,8 @@ void RenderContext(const char *prompt, const char *message, int is_warning) {
   int len_indicators = strlen(indicators);
   int tw_indicators = TextWidth(xft_font, indicators, len_indicators);
 
+  GetPrimaryMonitor(display, parent_window, &main_monitor);
+
   int region_w = main_monitor.width;
   int region_h = main_monitor.height * 0.55 * (main_monitor.ppi/100);
 
