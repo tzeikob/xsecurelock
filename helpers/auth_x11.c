@@ -317,12 +317,15 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
   int have_output = 0;
   if (show_keyboard_layout) {
     Atom layouta = xkb->names->groups[state.group];  // Human-readable.
+
     if (layouta == None) {
       layouta = xkb->names->symbols;  // Machine-readable fallback.
     }
+
     if (layouta != None) {
       char *layout = XGetAtomName(display, layouta);
       n = strlen(layout);
+
       if (n >= sizeof(buf) - (p - buf)) {
         Log("Not enough space to store layout name '%s'", layout);
         XFree(layout);
@@ -391,6 +394,7 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
       }
       
       char *name = XGetAtomName(display, namea);
+
       if (strcmp(name, "Caps Lock") == 0) {
         is_caps_on = 1;
         XFree(name);
@@ -402,6 +406,13 @@ const char *GetIndicators(int *warning, int *have_multiple_layouts) {
 
     char *cpslck = (is_caps_on == 1) ? " [ABC]" : " [Abc]";
     size_t n = strlen(cpslck);
+
+    if (n >= sizeof(buf) - (p - buf)) {
+      Log("Not enough space to store intro '%s'", cpslck);
+      XkbFreeKeyboard(xkb, 0, True);
+      return "";
+    }
+
     memcpy(p, cpslck, n);
     p += n;
     have_output = 1;
