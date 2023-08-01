@@ -6,12 +6,11 @@ date and time.
 
 The module expects the following environment variables:
 
- - XSECURELOCK_SAVER_FONT: font family of the textual parts
- - XSECURELOCK_SAVER_FONT_SIZE: font size of the textual parts
- - XSECURELOCK_SAVER_DATE_FORMAT: the format of the date
- - XSECURELOCK_SAVER_TIME_FORMAT: the format of the time
- - XSECURELOCK_SAVER_BACKGROUND: the backaground color
- - XSECURELOCK_SAVER_FOREGROUND: the foreground color
+ - XSECURELOCK_BACKGROUND_COLOR: the backaground color
+ - XSECURELOCK_FOREGROUND_COLOR: the foreground color
+ - XSECURELOCK_FONT: font family of the textual parts
+ - XSECURELOCK_DATE_FORMAT: the format of the date
+ - XSECURELOCK_TIME_FORMAT: the format of the time
 """
 
 import os
@@ -31,6 +30,9 @@ from screeninfo import get_monitors
 
 def rgb(hex):
   """Convert a color given in hexadecimal format to rgb."""
+  if hex[0] == "#":
+    hex=hex[1:]
+
   n = int(hex, 16)
   red = (n>>16)/255
   green = (n>>8&~(0xFF<<8))/255
@@ -141,12 +143,13 @@ if __name__ == "__main__":
 
   ctx = types.SimpleNamespace()
 
-  ctx.font_family = os.getenv("XSECURELOCK_SAVER_FONT", "Monospace")
-  ctx.font_size = int(os.getenv("XSECURELOCK_SAVER_FONT_SIZE", 80)) * scale
-  ctx.date_format = os.getenv("XSECURELOCK_SAVER_DATE_FORMAT", "%a, %-d %B, %Y")
-  ctx.time_format = os.getenv("XSECURELOCK_SAVER_TIME_FORMAT", "%I:%M %p")
-  ctx.background_color = rgb(os.getenv("XSECURELOCK_SAVER_BACKGROUND", "000000"))
-  ctx.foreground_color = rgb(os.getenv("XSECURELOCK_SAVER_FOREGROUND", "ffffff"))
+
+  ctx.background_color = rgb(os.getenv("XSECURELOCK_BACKGROUND_COLOR", "#282a36"))
+  ctx.foreground_color = rgb(os.getenv("XSECURELOCK_FOREGROUND_COLOR", "#ff557f"))
+  ctx.font_family = os.getenv("XSECURELOCK_FONT", "monospace")
+  ctx.font_size = 120 * scale
+  ctx.date_format = os.getenv("XSECURELOCK_DATE_FORMAT", "%a, %-d %B, %Y")
+  ctx.time_format = os.getenv("XSECURELOCK_TIME_FORMAT", "%H:%M:%S")
 
   ctx.background = None
   ctx.clock = None

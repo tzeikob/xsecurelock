@@ -838,7 +838,7 @@ int main(int argc, char **argv) {
   XColor dummy;
   int status = XAllocNamedColor(
       display, DefaultColormap(display, DefaultScreen(display)),
-      GetStringSetting("XSECURELOCK_BACKGROUND_COLOR", "black"),
+      GetStringSetting("XSECURELOCK_BACKGROUND_COLOR", "#282a36"),
       &xcolor_background, &dummy);
   unsigned long background_pixel = black.pixel;
   if (status != XcmsFailure) {

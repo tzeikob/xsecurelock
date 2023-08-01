@@ -1128,14 +1128,9 @@ int main(int argc_local, char **argv_local) {
   setlocale(LC_TIME, "");
 
   authproto_executable = GetExecutablePathSetting("XSECURELOCK_AUTHPROTO", AUTHPROTO_EXECUTABLE, 0);
-  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 60);
+  prompt_timeout = GetIntSetting("XSECURELOCK_AUTH_TIMEOUT", 30);
   password_prompt = GetStringSetting("XSECURELOCK_PASSWORD_PROMPT", "asterisks");
-  auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 0);
-
-#ifdef HAVE_XKB_EXT
-  show_keyboard_layout = GetIntSetting("XSECURELOCK_SHOW_KEYBOARD_LAYOUT", 1);
-  show_locks_and_latches = GetIntSetting("XSECURELOCK_SHOW_LOCKS_AND_LATCHES", 0);
-#endif
+  auth_sounds = GetIntSetting("XSECURELOCK_AUTH_SOUNDS", 1);
 
   if ((display = XOpenDisplay(NULL)) == NULL) {
     Log("Could not connect to $DISPLAY");
@@ -1174,14 +1169,14 @@ int main(int argc_local, char **argv_local) {
   XColor dummy;
   XAllocNamedColor(
       display, DefaultColormap(display, DefaultScreen(display)),
-      GetStringSetting("XSECURELOCK_AUTH_BACKGROUND_COLOR", "black"),
+      GetStringSetting("XSECURELOCK_BACKGROUND_COLOR", "#282a36"),
       &xcolor_background, &dummy);
   XAllocNamedColor(
       display, DefaultColormap(display, DefaultScreen(display)),
-      GetStringSetting("XSECURELOCK_AUTH_FOREGROUND_COLOR", "white"),
+      GetStringSetting("XSECURELOCK_FOREGROUND_COLOR", "#ff557f"),
       &xcolor_foreground, &dummy);
   XAllocNamedColor(display, DefaultColormap(display, DefaultScreen(display)),
-                   GetStringSetting("XSECURELOCK_AUTH_WARNING_COLOR", "red"),
+                   GetStringSetting("XSECURELOCK_WARNING_COLOR", "#ff557f"),
                    &xcolor_warning, &dummy);
 
   core_font = NULL;
@@ -1195,7 +1190,7 @@ int main(int argc_local, char **argv_local) {
   double font_size = 12 * scale;
   double font_large_size = 20 * scale;
 
-  const char *font_name = GetStringSetting("XSECURELOCK_FONT", "");
+  const char *font_name = GetStringSetting("XSECURELOCK_FONT", "monospace");
 
   // First try parsing the font name as an X11 core font. We're trying these
   // first as their font name format is more restrictive (usually starts with a
