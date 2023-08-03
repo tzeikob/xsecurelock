@@ -110,34 +110,10 @@ Options to XSecureLock can be passed by environment variables:
 *   `XSECURELOCK_DEBUG_ALLOW_LOCKING_IF_INEFFECTIVE`: Normally we don't allow locking sessions that are likely not any useful to lock, such as the X11 part of a Wayland session (one could still use Wayland applicatione when
     locked) or VNC sessions (as it'd only lock the server side session while users will likely think they locked the client, allowing for an easy escape). These checks can be bypassed by setting this variable to 1. Not
     recommended other than for debugging XSecureLock itself via such connections.
-*   `XSECURELOCK_DIM_ALPHA`: Linear-space opacity to fade the screen to.
-*   `XSECURELOCK_DIM_COLOR`: X11 color to fade the screen to.
-*   `XSECURELOCK_DIM_FPS`: Target framerate to attain during the dimming effect
-    of `dimmer`. Ideally matches the display refresh rate.
-*   `XSECURELOCK_DIM_MAX_FILL_SIZE`: Maximum size (in width or height) to fill
-    at once using an XFillRectangle call. Low values may cause performance loss
-    or noticeable tearing during dimming; high values may cause crashes or hangs
-    with some graphics drivers or a temporarily unresponsive X server.
-*   `XSECURELOCK_DIM_OVERRIDE_COMPOSITOR_DETECTION`: When set to 1, always try
-    to use transparency for dimming; when set to 0, always use a dither
-    pattern. Default is to autodetect whether transparency will likely work.
-*   `XSECURELOCK_DIM_TIME_MS`: Milliseconds to dim for when above xss-lock
-    command line with `dimmer` is used; also used by `wait_nonidle` to know when
-    to assume dimming and waiting has finished and exit.
-*   `XSECURELOCK_IDLE_TIMERS`: comma-separated list of idle time counters used
-    by `until_nonidle`. Typical values are either empty (relies on the X Screen
-    Saver extension instead), "IDLETIME" and "DEVICEIDLETIME <n>" where n is an
-    XInput device index (run `xinput` to see them). If multiple time counters
-    are specified, the idle time is the minimum of them all. All listed timers
-    must have the same unit.
 *   `XSECURELOCK_SWITCH_USER_COMMAND`: shell command to execute when `Win-O` or
     `Ctrl-Alt-O` are pressed (think "_other_ user"). Typical values could be
     `lxdm -c USER_SWITCH`, `dm-tool switch-to-greeter`, `gdmflexiserver` or
     `kdmctl reserve`, depending on your desktop environment.
-*   `XSECURELOCK_WAIT_TIME_MS`: Milliseconds to wait after dimming (and before
-    locking) when above xss-lock command line is used. Should be at least as
-    large as the period time set using "xset s". Also used by `wait_nonidle` to
-    know when to assume dimming and waiting has finished and exit.
 *   `XSECURELOCK_XSCREENSAVER_PATH`: Location where XScreenSaver hacks are
     installed for use by `saver_xscreensaver`.
 

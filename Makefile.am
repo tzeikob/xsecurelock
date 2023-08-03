@@ -37,9 +37,6 @@ endif
 if HAVE_XSCREENSAVER_EXT
 macros += -DHAVE_XSCREENSAVER_EXT
 endif
-if HAVE_XSYNC_EXT
-macros += -DHAVE_XSYNC_EXT
-endif
 if HAVE_XCOMPOSITE_EXT
 macros += -DHAVE_XCOMPOSITE_EXT
 endif
@@ -107,26 +104,6 @@ saver_multiplex_SOURCES = \
 	wm_properties.c wm_properties.h \
 	xscreensaver_api.c xscreensaver_api.h
 saver_multiplex_CPPFLAGS = $(macros)
-
-helpers_PROGRAMS += \
-	dimmer
-dimmer_SOURCES = \
-	env_settings.c env_settings.h \
-	helpers/dimmer.c \
-	logging.c logging.h \
-	wm_properties.c wm_properties.h
-dimmer_CPPFLAGS = $(macros)
-
-if HAVE_IDLE_TIMER
-helpers_PROGRAMS += \
-	until_nonidle
-until_nonidle_SOURCES = \
-	env_settings.c env_settings.h \
-	helpers/until_nonidle.c \
-	logging.c logging.h \
-	wait_pgrp.c wait_pgrp.h
-until_nonidle_CPPFLAGS = $(macros)
-endif
 
 helpers_PROGRAMS += \
 	auth_x11

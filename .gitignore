@@ -32,10 +32,8 @@
 # Binaries.
 /auth_x11
 /authproto_pam
-/dimmer
 /pgrp_placeholder
 /saver_multiplex
-/until_nonidle
 /xsecurelock
 
 # Doxygen stuff.

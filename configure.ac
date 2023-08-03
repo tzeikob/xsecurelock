@@ -115,12 +115,6 @@ RP_SEARCH_LIBS(XScreenSaverQueryExtension, Xss,
                [HAVE_XSCREENSAVER_EXT], [xss], [check],
                [Use the X11 Screen Saver extension to save power])
 
-# The X Synchronization extension is used to get per-device idle times. Used by
-# until_nonidle only.
-RP_SEARCH_LIBS(XSyncQueryExtension, Xext,
-               [HAVE_XSYNC_EXT], [xsync], [check],
-               [Use the X Synchronization extension to detect idle time])
-
 # The Composite extension needs an explicit opt-out because not having it can
 # cause desktop notifications to appear on top of the screen saver (privacy
 # risk).
