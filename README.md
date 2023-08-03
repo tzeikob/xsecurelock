@@ -78,6 +78,8 @@ Don't forget to make the script executable.
 
 Options to XSecureLock can be passed by environment variables:
 
+<!-- ENV VARIABLES START -->
+
 *   `XSECURELOCK_AUTH`: the desired authentication module (authentication prompt).
 *   `XSECURELOCK_AUTHPROTO`: the desired authentication protocol module (talks to the system).
 *   `XSECURELOCK_BACKGROUND_COLOR`: the X11 color (see XParseColor) for the background.
@@ -116,6 +118,8 @@ Options to XSecureLock can be passed by environment variables:
     `kdmctl reserve`, depending on your desktop environment.
 *   `XSECURELOCK_XSCREENSAVER_PATH`: Location where XScreenSaver hacks are
     installed for use by `saver_xscreensaver`.
+
+<!-- ENV VARIABLES END -->
 
 Additionally, command line arguments following a "--" argument will be executed via `execvp` once locking is successful; this can be used to notify a calling process of successful locking.
 
