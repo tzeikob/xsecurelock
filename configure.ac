@@ -173,12 +173,6 @@ RP_SEARCH_PROG(pandoc, [$PATH],
                [HAVE_PANDOC], [pandoc], [check],
                [Use pandoc to generate man pages])
 
-RP_SEARCH_PROG(slidescreen, [/usr/libexec/xscreensaver:/usr/lib/xscreensaver],
-               [HAVE_XSCREENSAVER], [xscreensaver], [check],
-               [Install saver_xscreensaver (specify --with-xscreensaver=/usr/libexec/xscreensaver to set the saver plugin directory to use)])
-# However, all we really want is the directory name...
-path_to_xscreensaver=${path_to_xscreensaver%/slidescreen}
-
 pam_service_name=
 enable_pam_check_account_type=no
 
@@ -262,7 +256,6 @@ AC_SUBST(auth_executable)
 AC_SUBST(authproto_executable)
 AC_SUBST(global_saver_executable)
 AC_SUBST(saver_executable)
-AC_SUBST(path_to_xscreensaver)
 AM_CONDITIONAL([PAM_CHECK_ACCOUNT_TYPE],
                [test x$enable_pam_check_account_type = xyes])
 AM_CONDITIONAL([HAVE_IDLE_TIMER],
@@ -273,8 +266,6 @@ AC_CONFIG_FILES([helpers/authproto_pypam],
                 [chmod +x helpers/authproto_pypam])
 AC_CONFIG_FILES([helpers/saver_clock],
                 [chmod +x helpers/saver_clock])
-AC_CONFIG_FILES([helpers/saver_xscreensaver],
-                [chmod +x helpers/saver_xscreensaver])
 
 # Generate documentation.
 AC_CHECK_PROGS([DOXYGEN], [doxygen], [])

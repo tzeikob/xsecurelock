@@ -82,10 +82,6 @@ helpers_SCRIPTS = \
 	helpers/saver_blank \
 	helpers/saver_clock \
 	helpers/authproto_pypam
-if HAVE_XSCREENSAVER
-helpers_SCRIPTS += \
-	helpers/saver_xscreensaver
-endif
 
 helpers_PROGRAMS = \
 	pgrp_placeholder

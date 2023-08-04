@@ -14,7 +14,6 @@
 /depcomp
 /helpers/authproto_pypam
 /helpers/saver_clock
-/helpers/saver_xscreensaver
 /install-sh
 /missing
 /version.c

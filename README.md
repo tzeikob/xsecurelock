@@ -24,7 +24,6 @@ The following packages need to be installed:
 *   make
 *   pkg-config
 *   x11proto-core-dev
-*   xscreensaver (for the `saver_xscreensaver` module)
 *   python-pam (for the `authproto_pypam` module)
 
 ## How to install
@@ -112,8 +111,6 @@ Options to XSecureLock can be passed by environment variables:
 *   `XSECURELOCK_DEBUG_ALLOW_LOCKING_IF_INEFFECTIVE`: Normally we don't allow locking sessions that are likely not any useful to lock, such as the X11 part of a Wayland session (one could still use Wayland applicatione when
     locked) or VNC sessions (as it'd only lock the server side session while users will likely think they locked the client, allowing for an easy escape). These checks can be bypassed by setting this variable to 1. Not
     recommended other than for debugging XSecureLock itself via such connections.
-*   `XSECURELOCK_XSCREENSAVER_PATH`: Location where XScreenSaver hacks are
-    installed for use by `saver_xscreensaver`.
 
 <!-- ENV VARIABLES END -->
 
@@ -138,8 +135,6 @@ The following screen saver modules are included:
 
 *   `saver_blank`: Simply blanks the screen.
 *   `saver_clock`: Shows a real-time date time digital clock.
-*   `saver_xscreensaver`: Runs an XScreenSaver hack from an existing XScreenSaver setup. NOTE: some screen savers included by this may display arbitrary pictures from your home directory; if you care about this, either
-    run `xscreensaver-demo` and disable screen savers that may do this, or stay away from this one!
 
 # Security Design
 
