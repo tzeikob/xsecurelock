@@ -112,10 +112,6 @@ Options to XSecureLock can be passed by environment variables:
 *   `XSECURELOCK_DEBUG_ALLOW_LOCKING_IF_INEFFECTIVE`: Normally we don't allow locking sessions that are likely not any useful to lock, such as the X11 part of a Wayland session (one could still use Wayland applicatione when
     locked) or VNC sessions (as it'd only lock the server side session while users will likely think they locked the client, allowing for an easy escape). These checks can be bypassed by setting this variable to 1. Not
     recommended other than for debugging XSecureLock itself via such connections.
-*   `XSECURELOCK_SWITCH_USER_COMMAND`: shell command to execute when `Win-O` or
-    `Ctrl-Alt-O` are pressed (think "_other_ user"). Typical values could be
-    `lxdm -c USER_SWITCH`, `dm-tool switch-to-greeter`, `gdmflexiserver` or
-    `kdmctl reserve`, depending on your desktop environment.
 *   `XSECURELOCK_XSCREENSAVER_PATH`: Location where XScreenSaver hacks are
     installed for use by `saver_xscreensaver`.
 
