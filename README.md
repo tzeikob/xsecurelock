@@ -65,6 +65,12 @@ To have the authentication process start up without a keypress when the system e
 ```
 #!/bin/bash
 
+# Delay suspend to give some time to the locker to take action
+if [[ "${1}" == "pre" ]] && [[ "${2}" == "suspend" ]]; then
+  sleep 2
+fi
+
+# On resume prompt for authentication
 if [[ "${1}" == "post" ]]; then
   pkill -x -USR2 xsecurelock
 fi
