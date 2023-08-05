@@ -85,87 +85,87 @@ Don't forget to make the script executable.
 Options to xsecurelock can be passed by environment variables:
 
 <!-- ENV VARIABLES START -->
- `XSECURELOCK_AUTH`: the desired authentication module:<br>
-  &ensp;`auth_x11`: an X11 authentication prompt dialog, set as default.<br>
+ `XSECURELOCK_AUTH`: The desired authentication module:<br>
+  &ensp;`auth_x11`: An X11 authentication prompt dialog, set as default.<br>
  
- `XSECURELOCK_AUTHPROTO`: the desired authentication protocol module:<br>
-  &ensp;`authproto_pypam`: a no retry PAM authentication controller, set as default.<br>
-  &ensp;`authproto_pam`: the regular PAM authentication controller.<br>
+ `XSECURELOCK_AUTHPROTO`: The desired authentication protocol module:<br>
+  &ensp;`authproto_pypam`: A no retry PAM authentication controller, set as default.<br>
+  &ensp;`authproto_pam`: The regular PAM authentication controller.<br>
  
- `XSECURELOCK_AUTH_TIMEOUT`: the secs to wait for response to auth before giving up, default is `30`.<br>
+ `XSECURELOCK_AUTH_TIMEOUT`: The secs to wait for response to auth before giving up, default is `30`.<br>
   
- `XSECURELOCK_PAM_SERVICE`: the name of an existing pam service in `/etc/pam.d`, default is `system-auth`.<br>
+ `XSECURELOCK_PAM_SERVICE`: The name of an existing pam service in `/etc/pam.d`, default is `system-auth`.<br>
  
- `XSECURELOCK_NO_PAM_RHOST`: do not set PAM_RHOST to localhost, a work around to bugs in third-party PAM auth modules.<br>
-  &ensp;`0`: set PAM_RHOST to localhost.<br>
-  &ensp;`1`: do not set PAM_RHOST to localhost, set as default.<br>
+ `XSECURELOCK_NO_PAM_RHOST`: Do not set PAM_RHOST to localhost, despite [recommendation](http://www.linux-pam.org/Linux-PAM-html/adg-security-user-identity.html) to do so by the Linux-PAM Application Developers' Guide. This may work around bugs in third-party PAM authentication modules. If this solves a problem for you, please report a bug against said PAM module.<br>
+  &ensp;`0`: Set PAM_RHOST to localhost.<br>
+  &ensp;`1`: Do not set PAM_RHOST to localhost, set as default.<br>
  
- `XSECURELOCK_PASSWORD_PROMPT`: the desired password prompt text mode:<br>
-  &ensp;`asterisks`: shows asterisks like classic password prompts, set as default.<br>
-  &ensp;`hidden`: hides the password with no feedback for keypresses.<br>
+ `XSECURELOCK_PASSWORD_PROMPT`: The desired password prompt text mode:<br>
+  &ensp;`asterisks`: Shows asterisks like classic password prompts, set as default.<br>
+  &ensp;`hidden`: Hides the password with no feedback for keypresses.<br>
  
- `XSECURELOCK_AUTH_SOUNDS`: whether to play sounds during authentication to indicate status:<br>
-  &ensp;`0`: do not play sounds.<br>
-  &ensp;`1`: play sounds, set as default.<br>
+ `XSECURELOCK_AUTH_SOUNDS`: Whether to play sounds during authentication to indicate status:<br>
+  &ensp;`0`: Do not play sounds.<br>
+  &ensp;`1`: Play sounds, set as default.<br>
  
- `XSECURELOCK_DISCARD_FIRST_KEYPRESS`: the key pressed to stop the screen saver and spawn the auth child is sent to the auth child (and thus becomes part of the password entry). By default we always discard the key press that started the authentication flow, to prevent users from getting used to type their password on a blank screen (which could be just powered off and have a chat client behind or similar).<br>
-  &ensp;`0`: do not discard first keypress.<br>
-  &ensp;`1`: discard the first keypress, set as default.<br>
+ `XSECURELOCK_DISCARD_FIRST_KEYPRESS`: The key pressed to stop the screen saver and spawn the auth child is sent to the auth child (and thus becomes part of the password entry). By default we always discard the key press that started the authentication flow, to prevent users from getting used to type their password on a blank screen (which could be just powered off and have a chat client behind or similar).<br>
+  &ensp;`0`: Do not discard first keypress.<br>
+  &ensp;`1`: Discard the first keypress, set as default.<br>
  
- `XSECURELOCK_BACKGROUND_COLOR`: an `#RRGGBB` Hex X11 color for the background.<br>
+ `XSECURELOCK_BACKGROUND_COLOR`: An `#RRGGBB` Hex X11 color for the background.<br>
  
- `XSECURELOCK_FOREGROUND_COLOR`: an `#RRGGBB` Hex X11 color for foreground texts.<br>
+ `XSECURELOCK_FOREGROUND_COLOR`: An `#RRGGBB` Hex X11 color for foreground texts.<br>
  
- `XSECURELOCK_WARNING_COLOR`: an `#RRGGBB` Hex X11 color for warning texts.<br>
+ `XSECURELOCK_WARNING_COLOR`: An `#RRGGBB` Hex X11 color for warning texts.<br>
  
- `XSECURELOCK_FONT`: an X11 or FontConfig font name to be used for texts.<br>
+ `XSECURELOCK_FONT`: An X11 or FontConfig font name to be used for texts.<br>
  
- `XSECURELOCK_DATE_FORMAT`: the format to be used for the date in saver modules.<br>
+ `XSECURELOCK_DATE_FORMAT`: The format to be used for the date in saver modules.<br>
  
- `XSECURELOCK_TIME_FORMAT`: the format to be used for the time in saver modules.<br>
+ `XSECURELOCK_TIME_FORMAT`: The format to be used for the time in saver modules.<br>
  
- `XSECURELOCK_NO_COMPOSITE`: switches to a more traditional way of locking, but may allow desktop notifications to be visible on top of the screen lock:<br>
-  &ensp;`0`: covering the composite overlay window, set as default.<br>
-  &ensp;`1`: disables covering the composite overlay window.<br>
+ `XSECURELOCK_NO_COMPOSITE`: Switches to a more traditional way of locking, but may allow desktop notifications to be visible on top of the screen lock:<br>
+  &ensp;`0`: Covering the composite overlay window, set as default.<br>
+  &ensp;`1`: Disables covering the composite overlay window.<br>
  
- `XSECURELOCK_COMPOSITE_OBSCURER`: create a second full-screen window to obscure window content in case a running compositor unmaps its own window. Helps with some instances of bad compositor behavior (such as compositor crashes/restarts, but also compton has been caught at drawing notification icons above the screen locker when not using the GLX backend), should prevent compositors from unredirecting as it's 1 pixel smaller than the screen from every side, and should otherwise be harmless, so it's enabled by default.<br>
-  &ensp;`0`: do not create a second full-screen window to obscure window content.<br>
-  &ensp;`1`: create a second full-screen window to obscure window content, set as default.<br>
+ `XSECURELOCK_COMPOSITE_OBSCURER`: Create a second full-screen window to obscure window content in case a running compositor unmaps its own window. Helps with some instances of bad compositor behavior (such as compositor crashes/restarts, but also compton has been caught at drawing notification icons above the screen locker when not using the GLX backend), should prevent compositors from unredirecting as it's 1 pixel smaller than the screen from every side, and should otherwise be harmless, so it's enabled by default.<br>
+  &ensp;`0`: Do not create a second full-screen window to obscure window content.<br>
+  &ensp;`1`: Create a second full-screen window to obscure window content, set as default.<br>
  
- `XSECURELOCK_SAVER`: the desired screen saver module:<br>
-  &ensp;`saver_blank`: leaves the screen plain blank, set as default.<br>
-  &ensp;`saver_clock`: shows the current date and time in digital form.<br>
+ `XSECURELOCK_SAVER`: The desired screen saver module:<br>
+  &ensp;`saver_blank`: Leaves the screen plain blank, set as default.<br>
+  &ensp;`saver_clock`: Shows the current date and time in digital form.<br>
  
- `XSECURELOCK_SAVER_DELAY_MS`: the milliseconds to wait after starting children process and before mapping windows to let children be ready to display and reduce the black flash, defautl set to `0`.<br>
+ `XSECURELOCK_SAVER_DELAY_MS`: The milliseconds to wait after starting children process and before mapping windows to let children be ready to display and reduce the black flash, defautl set to `0`.<br>
  
- `XSECURELOCK_SAVER_RESET_ON_AUTH_CLOSE`: specifies whether to reset the saver module when the auth dialog closes. Resetting is done by sending `SIGUSR1` to the saver, which may either just terminate, or handle this specifically to do a cheaper reset.<br>
-  &ensp;`0`: do not reset the saver module, set as default.<br>
-  &ensp;`1`: reset the saver module.<br>
+ `XSECURELOCK_SAVER_RESET_ON_AUTH_CLOSE`: Specifies whether to reset the saver module when the auth dialog closes. Resetting is done by sending `SIGUSR1` to the saver, which may either just terminate, or handle this specifically to do a cheaper reset.<br>
+  &ensp;`0`: Do not reset the saver module, set as default.<br>
+  &ensp;`1`: Reset the saver module.<br>
  
- `XSECURELOCK_SAVER_STOP_ON_DPMS`: specifies if saver is stopped when DPMS blanks the screen:<br>
-  &ensp;`0`: do not stop when DPMS blanks the screen.<br>
-  &ensp;`1`: stop when DPMS blanks the screen, set as default.<br>
+ `XSECURELOCK_SAVER_STOP_ON_DPMS`: Specifies if saver is stopped when DPMS blanks the screen:<br>
+  &ensp;`0`: Do not stop when DPMS blanks the screen.<br>
+  &ensp;`1`: Stop when DPMS blanks the screen, set as default.<br>
  
- `XSECURELOCK_GLOBAL_SAVER`: specifies the desired global screen saver module (by default this is a multiplexer that runs `XSECURELOCK_SAVER` on each screen).<br>
+ `XSECURELOCK_GLOBAL_SAVER`: Specifies the desired global screen saver module (by default this is a multiplexer that runs `XSECURELOCK_SAVER` on each screen).<br>
  
- `XSECURELOCK_BLANK_TIMEOUT`: the time in seconds before telling X11 to fully blank the screen; a negative value disables X11 blanking. The time is measured since the closing of the auth window or xsecurelock startup. Setting this to 0 is rather nonsensical, as key-release events (e.g. from the keystroke to launch xsecurelock or from pressing escape to close the auth dialog) always wake up the screen, default set to `600`.<br>
+ `XSECURELOCK_BLANK_TIMEOUT`: The time in seconds before telling X11 to fully blank the screen; a negative value disables X11 blanking. The time is measured since the closing of the auth window or xsecurelock startup. Setting this to 0 is rather nonsensical, as key-release events (e.g. from the keystroke to launch xsecurelock or from pressing escape to close the auth dialog) always wake up the screen, default set to `600`.<br>
  
- `XSECURELOCK_BLANK_DPMS_STATE`: specifies which DPMS state to put the screen in when blanking, `standby`, `suspend`, `off` or `on` where `on` means to not invoke DPMS at all, default set to `off`.<br>
+ `XSECURELOCK_BLANK_DPMS_STATE`: Specifies which DPMS state to put the screen in when blanking, `standby`, `suspend`, `off` or `on` where `on` means to not invoke DPMS at all, default set to `off`.<br>
  
- `XSECURELOCK_KEY_%s_COMMAND`: where `%s` is the name of an X11 keysym (find using `xev`), a shell command to execute when the specified key is pressed. Useful e.g. for media player control. Beware: be cautious about what you run with this, as it may yield attackers control over your computer.<br>
+ `XSECURELOCK_KEY_%s_COMMAND`: Where `%s` is the name of an X11 keysym (find using `xev`), a shell command to execute when the specified key is pressed. Useful e.g. for media player control. Beware: be cautious about what you run with this, as it may yield attackers control over your computer.<br>
  
- `XSECURELOCK_FORCE_GRAB`: when grabbing fails, try stealing the grab from other windows, This works only sometimes and is incompatible with many window managers, so use with care:<br>
-  &ensp;`0`: do not force grabbibg, set as default.<br>
-  &ensp;`1`: only steals from client windows.<br>
-  &ensp;`2`: steals from all descendants of the root window.<br>
+ `XSECURELOCK_FORCE_GRAB`: When grabbing fails, try stealing the grab from other windows, This works only sometimes and is incompatible with many window managers, so use with care:<br>
+  &ensp;`0`: Do not force grabbibg, set as default.<br>
+  &ensp;`1`: Only steals from client windows.<br>
+  &ensp;`2`: Steals from all descendants of the root window.<br>
  
- `XSECURELOCK_DEBUG_WINDOW_INFO`: when complaining about another window misbehaving, print not just the window ID but also some info about it:<br>
-  &ensp;`0`: do not debug window info, set as default.<br>
-  &ensp;`1`: dubug window info.<br>
+ `XSECURELOCK_DEBUG_WINDOW_INFO`: When complaining about another window misbehaving, print not just the window ID but also some info about it:<br>
+  &ensp;`0`: Do not debug window info, set as default.<br>
+  &ensp;`1`: Debug window info.<br>
  
- `XSECURELOCK_DEBUG_ALLOW_LOCKING_IF_INEFFECTIVE`: normally we don't allow locking sessions that are likely not any useful to lock, such as the X11 part of a Wayland session (one could still use Wayland applicatione when locked) or VNC sessions (as it'd only lock the server side session while users will likely think they locked the client, allowing for an easy escape). These checks can be bypassed by setting this variable to 1. Not recommended other than for debugging xsecurelock itself via such connections:<br>
-  &ensp;`0`: do not allow locking when ineffective, set as default.<br>
-  &ensp;`1`: do not allow locking when ineffective.<br>
+ `XSECURELOCK_DEBUG_ALLOW_LOCKING_IF_INEFFECTIVE`: Normally we don't allow locking sessions that are likely not any useful to lock, such as the X11 part of a Wayland session (one could still use Wayland applicatione when locked) or VNC sessions (as it'd only lock the server side session while users will likely think they locked the client, allowing for an easy escape). These checks can be bypassed by setting this variable to 1. Not recommended other than for debugging xsecurelock itself via such connections:<br>
+  &ensp;`0`: Do not allow locking when ineffective, set as default.<br>
+  &ensp;`1`: Do not allow locking when ineffective.<br>
 <!-- ENV VARIABLES END -->
 
 Additionally, command line arguments following a "--" argument will be executed via `execvp` once locking is successful; this can be used to notify a calling process of successful locking.
