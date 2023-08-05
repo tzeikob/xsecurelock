@@ -28,6 +28,8 @@ from gi.repository import Gtk, Gdk, GdkX11, GLib, GdkPixbuf, Gio
 
 from screeninfo import get_monitors
 
+scale = 1.0
+
 def rgb(hex):
   """Convert a color given in hexadecimal format to rgb."""
   if hex[0] == "#":
@@ -86,13 +88,17 @@ def on_overlay_draw(widget, cctx, ctx):
     cctx.select_font_face(ctx.font_family, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
     cctx.set_font_size(ctx.font_size)
     _, _, twidth, theight, _, _ = cctx.text_extents(re.sub(r"\d", "8", time))
-    cctx.move_to(wwidth // 2 - twidth // 2, wheight // 2.75)
+    pos_x = wwidth // 2 - twidth // 2
+    pos_y = wheight // (2.7 * scale)
+    cctx.move_to(pos_x, pos_y)
     draw(time)
 
     cctx.select_font_face(ctx.font_family, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
     cctx.set_font_size(ctx.font_size // 3)
-    _, _, twidth, theight, _, _ = cctx.text_extents(date)
-    cctx.move_to(wwidth // 2 - twidth // 2, wheight // 2.75 + theight * 1.5)
+    _, _, dwidth, dheight, _, _ = cctx.text_extents(date)
+    pos_x = wwidth // 2 - dwidth // 2
+    pos_y += dheight + (15 * scale)
+    cctx.move_to(pos_x, pos_y)
     draw(date)
 
 def on_clock_change(ctx):
@@ -134,7 +140,6 @@ def computePpi(w, h, mw, mh):
   return diagonal_px / diagonal_in
 
 if __name__ == "__main__":
-  scale = 1.0
   for m in get_monitors():
     ppi = computePpi(m.width, m.height, m.width_mm, m.height_mm)
     scale = ppi / 100.0
