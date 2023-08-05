@@ -156,8 +156,8 @@ version.c: FORCE
 env_helpstr.inc: README.md # Autogenerate for --help.
 	grep -A 9999 'ENV VARIABLES START' "$<" |\
 		grep -B 9999 'ENV VARIABLES END' |\
-		grep '^[ *]' |\
-		sed -e 's,\\\|",\\&,g; s,$$,\\n",; s,^,",;' > "$@"
+		grep '^ ' |\
+		sed -e 's,<br>,,g; s,&ensp;,,g; s,`,,g; s,\\\|",\\&,g; s,$$,\\n",; s,^,",;' > "$@"
 xsecurelock-main.$(OBJEXT): env_helpstr.inc
 
 EXTRA_DIST = \
