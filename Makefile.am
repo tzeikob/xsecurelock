@@ -138,20 +138,6 @@ doc_DATA = \
 	LICENSE \
 	README.md
 
-if HAVE_PANDOC
-man1_MANS = xsecurelock.1
-xsecurelock.1.md: doc/xsecurelock.1.md README.md
-	{ \
-		grep -B 9999 'ENV VARIABLES HERE' doc/xsecurelock.1.md; \
-		grep -A 9999 'ENV VARIABLES START' README.md |\
-			grep -B 9999 'ENV VARIABLES END'; \
-		grep -A 9999 'ENV VARIABLES HERE' doc/xsecurelock.1.md; \
-	} > xsecurelock.1.md
-xsecurelock.1: xsecurelock.1.md
-	$(path_to_pandoc) -s -f markdown -t man -o $@ $<
-CLEANFILES += xsecurelock.1.md xsecurelock.1
-endif
-
 FORCE:
 version.c: FORCE
 	if [ -n "$(GIT_VERSION)" ]; then \
@@ -179,7 +165,6 @@ EXTRA_DIST = \
 	LICENSE \
 	README.md \
 	autogen.sh \
-	doc/xsecurelock.1.md \
 	ensure-documented-settings.sh \
 	helpers/saver_blank \
 	helpers/saver_clock \

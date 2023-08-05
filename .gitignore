@@ -21,8 +21,6 @@
 # Our own generated files.
 /Doxyfile
 /env_helpstr.inc
-/xsecurelock.1
-/xsecurelock.1.md
 /configure~
 
 # Object files.
