@@ -40,41 +40,27 @@ static void HandleSIGTERM(int signo) {
   raise(signo);                           // Destroys windows we created anyway.
 }
 
-#define MAX_MONITORS MAX_SAVERS
-
 static const char* saver_executable;
-
 static Display* display;
-static Monitor monitors[MAX_MONITORS];
-static size_t num_monitors;
-static Window windows[MAX_MONITORS];
+static Monitor monitor;
+static Window window;
 
-static void WatchSavers(void) {
-  for (size_t i = 0; i < num_monitors; ++i) {
-    WatchSaverChild(display, windows[i], i, saver_executable, 1);
-  }
-}
+static void SpawnSaver(Window parent, int argc, char* const* argv) {
+  window = XCreateWindow(display, parent, monitor.x, monitor.y,
+                          monitor.width, monitor.height, 0, CopyFromParent,
+                          InputOutput, CopyFromParent, 0, NULL);
 
-static void SpawnSavers(Window parent, int argc, char* const* argv) {
-  for (size_t i = 0; i < num_monitors; ++i) {
-    windows[i] =
-        XCreateWindow(display, parent, monitors[i].x, monitors[i].y,
-                      monitors[i].width, monitors[i].height, 0, CopyFromParent,
-                      InputOutput, CopyFromParent, 0, NULL);
-    SetWMProperties(display, windows[i], "xsecurelock",
-                    "saver_multiplex_screen", argc, argv);
-    XMapRaised(display, windows[i]);
-  }
+  SetWMProperties(display, window, "xsecurelock", "saver_multiplex_screen", argc, argv);
+  XMapRaised(display, window);
+
   // Need to flush the display so savers sure can access the window.
   XFlush(display);
-  WatchSavers();
+  WatchSaverChild(display, window, 0, saver_executable, 1);
 }
 
-static void KillSavers(void) {
-  for (size_t i = 0; i < num_monitors; ++i) {
-    WatchSaverChild(display, windows[i], i, saver_executable, 0);
-    XDestroyWindow(display, windows[i]);
-  }
+static void KillSaver(void) {
+  WatchSaverChild(display, window, 0, saver_executable, 0);
+  XDestroyWindow(display, window);
 }
 
 /*! \brief The main program.
@@ -109,9 +95,8 @@ int main(int argc, char** argv) {
       GetExecutablePathSetting("XSECURELOCK_SAVER", SAVER_EXECUTABLE, 0);
 
   SelectMonitorChangeEvents(display, parent);
-  num_monitors = GetMonitors(display, parent, monitors, MAX_MONITORS);
-
-  SpawnSavers(parent, argc, argv);
+  GetPrimaryMonitor(display, parent, &monitor);
+  SpawnSaver(parent, argc, argv);
 
   struct sigaction sa;
   sigemptyset(&sa.sa_mask);
@@ -133,20 +118,14 @@ int main(int argc, char** argv) {
     FD_ZERO(&in_fds);
     FD_SET(x11_fd, &in_fds);
     select(x11_fd + 1, &in_fds, 0, 0, NULL);
-    WatchSavers();
+    WatchSaverChild(display, window, 0, saver_executable, 1);
+
     XEvent ev;
     while (XPending(display) && (XNextEvent(display, &ev), 1)) {
       if (IsMonitorChangeEvent(display, ev.type)) {
-        Monitor new_monitors[MAX_SAVERS];
-        size_t new_num_monitors =
-            GetMonitors(display, parent, new_monitors, MAX_SAVERS);
-        if (new_num_monitors != num_monitors ||
-            memcmp(new_monitors, monitors, sizeof(monitors)) != 0) {
-          KillSavers();
-          num_monitors = new_num_monitors;
-          memcpy(monitors, new_monitors, sizeof(monitors));
-          SpawnSavers(parent, argc, argv);
-        }
+        GetPrimaryMonitor(display, parent, &monitor);
+        KillSaver();
+        SpawnSaver(parent, argc, argv);
       }
     }
   }

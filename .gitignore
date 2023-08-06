@@ -12,11 +12,8 @@
 /config.status
 /configure
 /depcomp
-/helpers/authproto_htpasswd
-/helpers/authproto_pamtester
-/helpers/saver_mplayer
-/helpers/saver_mpv
-/helpers/saver_xscreensaver
+/helpers/authproto_pypam
+/helpers/saver_clock
 /install-sh
 /missing
 /version.c
@@ -24,8 +21,7 @@
 # Our own generated files.
 /Doxyfile
 /env_helpstr.inc
-/xsecurelock.1
-/xsecurelock.1.md
+/configure~
 
 # Object files.
 *.o
@@ -33,14 +29,8 @@
 # Binaries.
 /auth_x11
 /authproto_pam
-/cat_authproto
-/dimmer
-/get_compositor
-/nvidia_break_compositor
 /pgrp_placeholder
-/remap_all
 /saver_multiplex
-/until_nonidle
 /xsecurelock
 
 # Doxygen stuff.

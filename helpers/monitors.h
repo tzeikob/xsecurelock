@@ -22,26 +22,25 @@ limitations under the License.
 #include <stddef.h>    // for size_t
 
 typedef struct {
-  int x, y, width, height;
+  int x, y;
+  int width, height;
+  int mwidth, mheight;
+  double ppi;
+  int is_primary;
 } Monitor;
 
-/*! \brief Queries the current monitor configuration.
+/*! \brief Queries the current primary monitor.
  *
- * Note: out_monitors will be zero padded and sorted in some deterministic order
- * so memcmp can be used to check if the monitor configuration has actually
- * changed.
+ * Note: if no primary monitor is found the first in order monitor
+ *       of the configuration will be returned.
  *
  * \param dpy The current display.
- * \param w The window this application intends to draw in.
- * \param out_monitors A pointer to an array that will receive the monitor
- *   configuration (in coordinates relative and clipped to the window w.
- * \param max_monitors The size of the array.
- * \return The number of monitors returned in the array.
+ * \param window The window this application intends to draw in.
+ * \param monitor A pointer to the primary monitor of the configuration.
  */
-size_t GetMonitors(Display* dpy, Window window, Monitor* out_monitors,
-                   size_t max_monitors);
+void GetPrimaryMonitor(Display* dpy, Window window, Monitor* monitor);
 
-/*! \brief Enable receiving monitor change events for the given display at w.
+/*! \brief Enable receiving monitor change events for the given display at window.
  */
 void SelectMonitorChangeEvents(Display* dpy, Window window);
 

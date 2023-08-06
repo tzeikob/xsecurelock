@@ -37,9 +37,6 @@ endif
 if HAVE_XSCREENSAVER_EXT
 macros += -DHAVE_XSCREENSAVER_EXT
 endif
-if HAVE_XSYNC_EXT
-macros += -DHAVE_XSYNC_EXT
-endif
 if HAVE_XCOMPOSITE_EXT
 macros += -DHAVE_XCOMPOSITE_EXT
 endif
@@ -82,27 +79,9 @@ xsecurelock_LDADD = $(LIBBSD_LIBS)
 
 helpersdir = $(pkglibexecdir)
 helpers_SCRIPTS = \
-	helpers/saver_blank
-if HAVE_HTPASSWD
-helpers_SCRIPTS += \
-	helpers/authproto_htpasswd
-endif
-if HAVE_MPLAYER
-helpers_SCRIPTS += \
-	helpers/saver_mplayer
-endif
-if HAVE_MPV
-helpers_SCRIPTS += \
-	helpers/saver_mpv
-endif
-if HAVE_PAMTESTER
-helpers_SCRIPTS += \
-	helpers/authproto_pamtester
-endif
-if HAVE_XSCREENSAVER
-helpers_SCRIPTS += \
-	helpers/saver_xscreensaver
-endif
+	helpers/saver_blank \
+	helpers/saver_clock \
+	helpers/authproto_pypam
 
 helpers_PROGRAMS = \
 	pgrp_placeholder
@@ -121,26 +100,6 @@ saver_multiplex_SOURCES = \
 	wm_properties.c wm_properties.h \
 	xscreensaver_api.c xscreensaver_api.h
 saver_multiplex_CPPFLAGS = $(macros)
-
-helpers_PROGRAMS += \
-	dimmer
-dimmer_SOURCES = \
-	env_settings.c env_settings.h \
-	helpers/dimmer.c \
-	logging.c logging.h \
-	wm_properties.c wm_properties.h
-dimmer_CPPFLAGS = $(macros)
-
-if HAVE_IDLE_TIMER
-helpers_PROGRAMS += \
-	until_nonidle
-until_nonidle_SOURCES = \
-	env_settings.c env_settings.h \
-	helpers/until_nonidle.c \
-	logging.c logging.h \
-	wait_pgrp.c wait_pgrp.h
-until_nonidle_CPPFLAGS = $(macros)
-endif
 
 helpers_PROGRAMS += \
 	auth_x11
@@ -179,37 +138,6 @@ doc_DATA = \
 	LICENSE \
 	README.md
 
-if HAVE_PANDOC
-man1_MANS = xsecurelock.1
-xsecurelock.1.md: doc/xsecurelock.1.md README.md
-	{ \
-		grep -B 9999 'ENV VARIABLES HERE' doc/xsecurelock.1.md; \
-		grep -A 9999 'ENV VARIABLES START' README.md |\
-			grep -B 9999 'ENV VARIABLES END'; \
-		grep -A 9999 'ENV VARIABLES HERE' doc/xsecurelock.1.md; \
-	} > xsecurelock.1.md
-xsecurelock.1: xsecurelock.1.md
-	$(path_to_pandoc) -s -f markdown -t man -o $@ $<
-CLEANFILES += xsecurelock.1.md xsecurelock.1
-endif
-
-# Some tools that we sure don't wan to install
-noinst_PROGRAMS = cat_authproto nvidia_break_compositor get_compositor remap_all
-cat_authproto_SOURCES = \
-	logging.c logging.h \
-	helpers/authproto.c helpers/authproto.h \
-	test/cat_authproto.c
-nvidia_break_compositor_SOURCES = \
-	test/nvidia_break_compositor.c
-nvidia_break_compositor_CPPFLAGS = $(macros)
-get_compositor_SOURCES = \
-	test/get_compositor.c
-get_compositor_CPPFLAGS = $(macros)
-remap_all_SOURCES= \
-	test/remap_all.c \
-	unmap_all.c unmap_all.h
-remap_all_CPPFLAGS = $(macros)
-
 FORCE:
 version.c: FORCE
 	if [ -n "$(GIT_VERSION)" ]; then \
@@ -228,8 +156,8 @@ version.c: FORCE
 env_helpstr.inc: README.md # Autogenerate for --help.
 	grep -A 9999 'ENV VARIABLES START' "$<" |\
 		grep -B 9999 'ENV VARIABLES END' |\
-		grep '^[ *]' |\
-		sed -e 's,\\\|",\\&,g; s,$$,\\n",; s,^,",;' > "$@"
+		grep '^ ' |\
+		sed -e 's,<br>,,g; s,&ensp;,,g; s,`,,g; s,\\\|",\\&,g; s,$$,\\n",; s,^,",;' > "$@"
 xsecurelock-main.$(OBJEXT): env_helpstr.inc
 
 EXTRA_DIST = \
@@ -237,9 +165,9 @@ EXTRA_DIST = \
 	LICENSE \
 	README.md \
 	autogen.sh \
-	doc/xsecurelock.1.md \
 	ensure-documented-settings.sh \
 	helpers/saver_blank \
+	helpers/saver_clock \
 	incompatible_compositor.xbm.sh \
 	run-iwyu.sh \
 	run-linters.sh \
@@ -247,10 +175,6 @@ EXTRA_DIST = \
 	test/*.sh \
 	test/*.xdo \
 	version.c
-
-examplesdir = $(docdir)/examples
-dist_examples_DATA = \
-	doc/examples/saver_livestreams
 
 if HAVE_DOXYGEN
 doxyfile.stamp:

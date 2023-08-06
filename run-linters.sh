@@ -43,7 +43,6 @@ if which clang-tidy; then
     -extra-arg=-DHAVE_XFT_EXT \
     -extra-arg=-DHAVE_XRANDR_EXT \
     -extra-arg=-DHAVE_XSCREENSAVER_EXT \
-    -extra-arg=-DHAVE_XSYNC_EXT \
     *.[ch] */*.[ch]
 fi
 

@@ -138,8 +138,6 @@ int no_composite = 0;
 //! Create an almost-fullscreen sized "obscurer window" against bad compositors.
 int composite_obscurer = 0;
 #endif
-//! If set, we can start a new login session.
-int have_switch_user_command = 0;
 //! If set, we try to force grabbing by "evil" means.
 int force_grab = 0;
 //! If set, print window info about any "conflicting" windows to stderr.
@@ -434,8 +432,6 @@ void LoadDefaults() {
   no_composite = GetIntSetting("XSECURELOCK_NO_COMPOSITE", 0);
   composite_obscurer = GetIntSetting("XSECURELOCK_COMPOSITE_OBSCURER", 1);
 #endif
-  have_switch_user_command =
-      *GetStringSetting("XSECURELOCK_SWITCH_USER_COMMAND", "");
   force_grab = GetIntSetting("XSECURELOCK_FORCE_GRAB", 0);
   debug_window_info = GetIntSetting("XSECURELOCK_DEBUG_WINDOW_INFO", 0);
   blank_timeout = GetIntSetting("XSECURELOCK_BLANK_TIMEOUT", 600);
@@ -838,7 +834,7 @@ int main(int argc, char **argv) {
   XColor dummy;
   int status = XAllocNamedColor(
       display, DefaultColormap(display, DefaultScreen(display)),
-      GetStringSetting("XSECURELOCK_BACKGROUND_COLOR", "black"),
+      GetStringSetting("XSECURELOCK_BACKGROUND_COLOR", "#282a36"),
       &xcolor_background, &dummy);
   unsigned long background_pixel = black.pixel;
   if (status != XcmsFailure) {
@@ -1378,16 +1374,6 @@ int main(int argc, char **argv) {
             // Map Ctrl-Backspace to Ctrl-U (clear entry line).
             priv.buf[0] = '\025';
             priv.buf[1] = 0;
-          } else if (have_switch_user_command &&
-                     (priv.keysym == XK_o || priv.keysym == XK_0) &&
-                     (((priv.ev.xkey.state & ControlMask) &&
-                       (priv.ev.xkey.state & Mod1Mask)) ||
-                      (priv.ev.xkey.state & Mod4Mask))) {
-            // Switch to greeter on Ctrl-Alt-O or Win-O.
-            system("eval \"$XSECURELOCK_SWITCH_USER_COMMAND\" &");
-            // And send a Ctrl-U (clear entry line).
-            priv.buf[0] = '\025';
-            priv.buf[1] = 0;
           } else if (have_key) {
             // Map all newline-like things to newlines.
             if (priv.len == 1 && priv.buf[0] == '\r') {
@@ -1400,10 +1386,10 @@ int main(int argc, char **argv) {
             // We do check if something external wants to handle this key,
             // though.
             const char *keyname = XKeysymToString(priv.keysym);
-            if (keyname != NULL) {
+            if (keyname != NULL && strcmp(keyname, "XF86PowerOff") != 0) {
               char buf[64];
-              int buflen = snprintf(buf, sizeof(buf),
-                                    "XSECURELOCK_KEY_%s_COMMAND", keyname);
+              int buflen = snprintf(buf, sizeof(buf), "XSECURELOCK_KEY_%s_COMMAND", keyname);
+
               if (buflen <= 0 || (size_t)buflen >= sizeof(buf)) {
                 Log("Wow, pretty long keysym names you got there");
               } else {
@@ -1420,6 +1406,8 @@ int main(int argc, char **argv) {
                   }
                 }
               }
+            } else {
+              do_wake_up = 0;
             }
           }
           // Now if so desired, wake up the login prompt, and check its

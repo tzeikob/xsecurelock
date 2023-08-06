@@ -115,12 +115,6 @@ RP_SEARCH_LIBS(XScreenSaverQueryExtension, Xss,
                [HAVE_XSCREENSAVER_EXT], [xss], [check],
                [Use the X11 Screen Saver extension to save power])
 
-# The X Synchronization extension is used to get per-device idle times. Used by
-# until_nonidle only.
-RP_SEARCH_LIBS(XSyncQueryExtension, Xext,
-               [HAVE_XSYNC_EXT], [xsync], [check],
-               [Use the X Synchronization extension to detect idle time])
-
 # The Composite extension needs an explicit opt-out because not having it can
 # cause desktop notifications to appear on top of the screen saver (privacy
 # risk).
@@ -175,31 +169,9 @@ RP_SEARCH_LIBS(XFixesSetWindowShapeRegion, Xfixes,
                [HAVE_XFIXES_EXT], [xfixes], [check],
                [Use the XFixes extension to work around some compositors])
 
-RP_SEARCH_PROG(htpasswd, [$PATH],
-               [HAVE_HTPASSWD], [htpasswd], [check],
-               [Install auth_htpasswd (specify --with-htpasswd=/usr/bin/htpasswd to set the path to use)])
-
-RP_SEARCH_PROG(mplayer, [$PATH],
-               [HAVE_MPLAYER], [mplayer], [check],
-               [Install saver_mplayer (specify --with-mplayer=/usr/bin/mplayer to set the path to use)])
-
-RP_SEARCH_PROG(mpv, [$PATH],
-               [HAVE_MPV], [mpv], [check],
-               [Install saver_mpv (specify --with-mpv=/usr/bin/mpv to set the path to use)])
-
-RP_SEARCH_PROG(pamtester, [$PATH],
-               [HAVE_PAMTESTER], [pamtester], [check],
-               [Install authproto_pamtester (specify --with-pamtester=/usr/bin to set the path to use)])
-
 RP_SEARCH_PROG(pandoc, [$PATH],
                [HAVE_PANDOC], [pandoc], [check],
                [Use pandoc to generate man pages])
-
-RP_SEARCH_PROG(slidescreen, [/usr/libexec/xscreensaver:/usr/lib/xscreensaver],
-               [HAVE_XSCREENSAVER], [xscreensaver], [check],
-               [Install saver_xscreensaver (specify --with-xscreensaver=/usr/libexec/xscreensaver to set the saver plugin directory to use)])
-# However, all we really want is the directory name...
-path_to_xscreensaver=${path_to_xscreensaver%/slidescreen}
 
 pam_service_name=
 enable_pam_check_account_type=no
@@ -250,12 +222,8 @@ AC_ARG_WITH([default_authproto_module],
                             [authproto_executable=$withval],
                             [
                              authproto_executable=
-                             AS_IF([test x$have_htpasswd = xtrue],
-                                   [authproto_executable=authproto_htpasswd])
-                             AS_IF([test x$have_pamtester = xtrue],
-                                   [authproto_executable=authproto_pamtester])
                              AS_IF([test x$have_pam = xtrue],
-                                   [authproto_executable=authproto_pam])
+                                   [authproto_executable=authproto_pypam])
                              AS_IF([test -z "$authproto_executable"],
                                    [AC_MSG_ERROR([No authproto executable found.])])
                             ])
@@ -288,27 +256,16 @@ AC_SUBST(auth_executable)
 AC_SUBST(authproto_executable)
 AC_SUBST(global_saver_executable)
 AC_SUBST(saver_executable)
-AC_SUBST(path_to_htpasswd)
-AC_SUBST(path_to_mplayer)
-AC_SUBST(path_to_mpv)
-AC_SUBST(path_to_pamtester)
-AC_SUBST(path_to_xscreensaver)
 AM_CONDITIONAL([PAM_CHECK_ACCOUNT_TYPE],
                [test x$enable_pam_check_account_type = xyes])
 AM_CONDITIONAL([HAVE_IDLE_TIMER],
                [test x$have_xss = xtrue -o x$have_xsync = xtrue])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([helpers/authproto_htpasswd],
-                [chmod +x helpers/authproto_htpasswd])
-AC_CONFIG_FILES([helpers/authproto_pamtester],
-                [chmod +x helpers/authproto_pamtester])
-AC_CONFIG_FILES([helpers/saver_mplayer],
-                [chmod +x helpers/saver_mplayer])
-AC_CONFIG_FILES([helpers/saver_mpv],
-                [chmod +x helpers/saver_mpv])
-AC_CONFIG_FILES([helpers/saver_xscreensaver],
-                [chmod +x helpers/saver_xscreensaver])
+AC_CONFIG_FILES([helpers/authproto_pypam],
+                [chmod +x helpers/authproto_pypam])
+AC_CONFIG_FILES([helpers/saver_clock],
+                [chmod +x helpers/saver_clock])
 
 # Generate documentation.
 AC_CHECK_PROGS([DOXYGEN], [doxygen], [])
