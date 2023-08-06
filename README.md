@@ -142,9 +142,9 @@ Options to xsecurelock can be passed by environment variables:
   &ensp;`0`: Do not reset the saver module, set as default.<br>
   &ensp;`1`: Reset the saver module.<br>
  
- `XSECURELOCK_SAVER_STOP_ON_DPMS`: Specifies if saver is stopped when DPMS blanks the screen:<br>
-  &ensp;`0`: Do not stop when DPMS blanks the screen.<br>
-  &ensp;`1`: Stop when DPMS blanks the screen, set as default.<br>
+ `XSECURELOCK_SAVER_STOP_ON_BLANK`: Specifies if saver is stopped when screen is blanked (DPMS or XSS):<br>
+  &ensp;`0`: Do not stop saver when screen is blanked.<br>
+  &ensp;`1`: Stop saver when screen is blanked, set as default.<br>
  
  `XSECURELOCK_GLOBAL_SAVER`: Specifies the desired global screen saver module (by default this is a multiplexer that runs `XSECURELOCK_SAVER` on each screen).<br>
  
